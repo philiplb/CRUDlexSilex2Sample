@@ -1,10 +1,15 @@
 <?php
 
-$loader = require __DIR__.'/../vendor/autoload.php';
+/*
+ * This file is part of the CRUDlex sample package.
+ *
+ * (c) Philip Lehmann-Böhm <philip@philiplb.de>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-use Silex\Provider\SessionServiceProvider;
-use Silex\Provider;
-use Symfony\Component\HttpFoundation\Response;
+$loader = require __DIR__.'/../vendor/autoload.php';
 
 $app = new Silex\Application();
 
@@ -28,7 +33,7 @@ $app->register(new CRUDlex\CRUDServiceProvider(), array(
     //'crud.stringsfile' => __DIR__ . '/../strings.yml',
     'crud.datafactory' => $dataFactory
 ));
-$app->register(new Provider\UrlGeneratorServiceProvider());
+$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new Silex\Provider\TwigServiceProvider());
 
 //$app['crud.layout'] = 'layout.twig';
