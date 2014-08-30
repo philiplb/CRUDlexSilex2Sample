@@ -1,11 +1,9 @@
--- phpMyAdmin SQL Dump
--- version 4.0.4.1
--- http://www.phpmyadmin.net
+-- This file is part of the CRUDlex sample package.
 --
--- Host: 127.0.0.1
--- Erstellungszeit: 24. Aug 2014 um 21:25
--- Server Version: 5.5.32
--- PHP-Version: 5.4.19
+-- (c) Philip Lehmann-Böhm <philip@philiplb.de>
+--
+-- For the full copyright and license information, please view the LICENSE
+-- file that was distributed with this source code.
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
