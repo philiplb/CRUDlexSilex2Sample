@@ -26,6 +26,7 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
         )
     ),
 ));
+$app->register(new Silex\Provider\SessionServiceProvider());
 
 $dataFactory = new CRUDlex\CRUDMySQLDataFactory($app['db']);
 $app->register(new CRUDlex\CRUDServiceProvider(), array(
