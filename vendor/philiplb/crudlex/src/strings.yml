@@ -1,5 +1,5 @@
 #
-# This file is part of the Crudlex package.
+# This file is part of the CRUDlex package.
 #
 # (c) Philip Lehmann-Böhm <philip@philiplb.de>
 #
@@ -15,3 +15,6 @@ edit.error: 'Could not edit, see the red marked fields.'
 edit.success: '{0} edited with id {1}'
 delete.error: 'Could not delete {0} as it is still referenced by another entity.'
 delete.success: '{0} deleted.'
+label.id: 'Id'
+label.created_at: 'Created at'
+label.updated_at: 'Updated at'

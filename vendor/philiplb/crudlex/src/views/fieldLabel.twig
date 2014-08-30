@@ -1,5 +1,5 @@
 {#
- # This file is part of the Crudlex package.
+ # This file is part of the CRUDlex package.
  #
  # (c) Philip Lehmann-Böhm <philip@philiplb.de>
  #
@@ -8,7 +8,7 @@
  #}
 
 <label for="{{ field }}" class="control-label">
-    {{ field }}
+    {{ definition.getFieldLabel(field) }}
     {% set markers = [] %}
     {% if definition.isRequired(field) %}
         {% set markers = markers|merge(['*']) %}

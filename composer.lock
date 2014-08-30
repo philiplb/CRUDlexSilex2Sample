@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b4773568e825c3dfb64acc0eb9e455f4",
+    "hash": "75abdc11ea895c6c82c06411cef9a2ed",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -483,16 +483,16 @@
         },
         {
             "name": "philiplb/crudlex",
-            "version": "0.9.x-dev",
+            "version": "0.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/philiplb/CRUDlex.git",
-                "reference": "57c5d25786b87344860bdedfa787a5c68e9e4c90"
+                "reference": "858ac49b914b54d2699490d46b941576777fb0c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/philiplb/CRUDlex/zipball/57c5d25786b87344860bdedfa787a5c68e9e4c90",
-                "reference": "57c5d25786b87344860bdedfa787a5c68e9e4c90",
+                "url": "https://api.github.com/repos/philiplb/CRUDlex/zipball/858ac49b914b54d2699490d46b941576777fb0c5",
+                "reference": "858ac49b914b54d2699490d46b941576777fb0c5",
                 "shasum": ""
             },
             "require": {
@@ -501,6 +501,10 @@
                 "silex/silex": "1.2.1",
                 "symfony/twig-bridge": "2.5.3",
                 "symfony/yaml": "2.5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0",
+                "satooshi/php-coveralls": "dev-master"
             },
             "type": "library",
             "autoload": {
@@ -525,7 +529,7 @@
                 "crud",
                 "silex"
             ],
-            "time": "2014-08-30 09:35:19"
+            "time": "2014-08-30 23:19:52"
         },
         {
             "name": "pimple/pimple",
@@ -1259,9 +1263,9 @@
 
     ],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "philiplb/crudlex": 20
-    },
+    "stability-flags": [
+
+    ],
     "prefer-stable": false,
     "platform": [
 

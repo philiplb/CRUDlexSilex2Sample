@@ -9,13 +9,6 @@
  * file that was distributed with this source code.
  */
 
-namespace CRUDlex;
-
-use CRUDlex\CRUDData;
-use CRUDlex\CRUDEntityDefinition;
-
-interface CRUDDataFactoryInterface {
-
-    public function createData(CRUDEntityDefinition $definition);
-
-}
+$loader = require __DIR__.'/../vendor/autoload.php';
+$loader->add('CRUDlexTestEnv', __DIR__);
+$loader->add('CRUDlexTests', __DIR__);

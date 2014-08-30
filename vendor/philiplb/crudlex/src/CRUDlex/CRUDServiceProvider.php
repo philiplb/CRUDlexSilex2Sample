@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Crudlex package.
+ * This file is part of the CRUDlex package.
  *
  * (c) Philip Lehmann-Böhm <philip@philiplb.de>
  *
@@ -26,10 +26,26 @@ class CRUDServiceProvider implements ServiceProviderInterface {
     protected $strings;
 
     public function init(CRUDDataFactoryInterface $dataFactory, $crudFile, $stringsFile) {
-        $cruds = Yaml::parse(file_get_contents($crudFile));
+        $stringsContent = @file_get_contents($stringsFile);
+        if ($stringsContent === false) {
+            throw new \Exception('Could not open CRUD strings file');
+        }
+        $this->strings = Yaml::parse($stringsContent);
+
+        $crudsContent = @file_get_contents($crudFile);
+        if ($crudsContent === false) {
+            throw new \Exception('Could not open CRUD definition file');
+        }
+        $cruds = Yaml::parse($crudsContent);
         $this->datas = array();
         foreach ($cruds as $name => $crud) {
-            $definition = new CRUDEntityDefinition($crud['table'], $crud['fields']);
+            $label = key_exists('label', $crud) ? $crud['label'] : $name;
+            $standardFieldLabels = array(
+                'id' => $this->translate('label.id'),
+                'created_at' => $this->translate('label.created_at'),
+                'updated_at' => $this->translate('label.updated_at')
+            );
+            $definition = new CRUDEntityDefinition($crud['table'], $crud['fields'], $label, $standardFieldLabels);
             $this->datas[$name] = $dataFactory->createData($definition);
         }
 
@@ -42,13 +58,12 @@ class CRUDServiceProvider implements ServiceProviderInterface {
             }
         }
 
-        $this->strings = Yaml::parse(file_get_contents($stringsFile));
     }
 
     public function register(Application $app) {
         $app['crud'] = $app->share(function() use ($app) {
             $result = new CRUDServiceProvider();
-            $stringsFile = $app->offsetExists('crud.stringsfile') ? $app['crud.stringsfile'] : __DIR__.'/strings.yml';
+            $stringsFile = $app->offsetExists('crud.stringsfile') ? $app['crud.stringsfile'] : __DIR__.'/../strings.yml';
             $result->init($app['crud.datafactory'], $app['crud.file'], $stringsFile);
             return $result;
         });

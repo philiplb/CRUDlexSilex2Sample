@@ -9,21 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace CRUDlex;
+namespace CRUDlexTestEnv;
 
+use CRUDlex\CRUDEntityDefinition;
 use CRUDlex\CRUDDataFactoryInterface;
-use CRUDlex\CRUDMySQLData;
+use CRUDlexTestEnv\CRUDTestData;
 
-class CRUDMySQLDataFactory implements CRUDDataFactoryInterface {
-
-    protected $db;
-
-    public function __construct($db) {
-        $this->db = $db;
-    }
+class CRUDTestDataFactory implements CRUDDataFactoryInterface {
 
     public function createData(CRUDEntityDefinition $definition) {
-        return new CRUDMySQLData($definition, $this->db);
+        return new CRUDTestData($definition);
     }
 
 }
