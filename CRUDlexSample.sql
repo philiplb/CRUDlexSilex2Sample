@@ -8,17 +8,12 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
---
--- Datenbank: `crud`
---
+-- --------------------------------------------------------
+
 CREATE DATABASE IF NOT EXISTS `crud` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `crud`;
 
 -- --------------------------------------------------------
-
---
--- Tabellenstruktur für Tabelle `book`
---
 
 CREATE TABLE IF NOT EXISTS `book` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -37,10 +32,6 @@ CREATE TABLE IF NOT EXISTS `book` (
 
 -- --------------------------------------------------------
 
---
--- Tabellenstruktur für Tabelle `library`
---
-
 CREATE TABLE IF NOT EXISTS `library` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_at` datetime NOT NULL,
@@ -51,12 +42,7 @@ CREATE TABLE IF NOT EXISTS `library` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
---
--- Constraints der exportierten Tabellen
---
+-- --------------------------------------------------------
 
---
--- Constraints der Tabelle `book`
---
 ALTER TABLE `book`
   ADD CONSTRAINT `book_ibfk_1` FOREIGN KEY (`library`) REFERENCES `library` (`id`);
