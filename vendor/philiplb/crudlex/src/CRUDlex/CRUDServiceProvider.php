@@ -45,14 +45,19 @@ class CRUDServiceProvider implements ServiceProviderInterface {
                 'created_at' => $this->translate('label.created_at'),
                 'updated_at' => $this->translate('label.updated_at')
             );
-            $definition = new CRUDEntityDefinition($crud['table'], $crud['fields'], $label, $standardFieldLabels);
+            $listFields = key_exists('listFields', $crud) ? $crud['listFields'] : null;
+            $definition = new CRUDEntityDefinition($crud['table'],
+                $crud['fields'],
+                $label,
+                $listFields,
+                $standardFieldLabels);
             $this->datas[$name] = $dataFactory->createData($definition);
         }
 
         foreach($this->datas as $name => $data) {
             $fields = $data->getDefinition()->getFieldNames();
             foreach ($fields as $field) {
-                if ($definition->getType($field) == 'reference') {
+                if ($data->getDefinition()->getType($field) == 'reference') {
                     $this->datas[$data->getDefinition()->getReferenceEntity($field)]->getDefinition()->addParent($data->getDefinition()->getTable(), $field);
                 }
             }
@@ -87,8 +92,28 @@ class CRUDServiceProvider implements ServiceProviderInterface {
         if (!$value) {
             return '';
         }
-        $dateTime = new \DateTime($value);
-        return $dateTime->format('Y-m-d');
+        $result = \DateTime::createFromFormat('Y-m-d', $value);
+        if ($result === false) {
+            $result = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+        }
+        if ($result === false) {
+            return $value;
+        }
+        return $result->format('Y-m-d');
+    }
+
+    public function formatDateTime($value) {
+        if (!$value) {
+            return '';
+        }
+        $result = \DateTime::createFromFormat('Y-m-d H:i', $value);
+        if ($result === false) {
+            $result = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+        }
+        if ($result === false) {
+            return $value;
+        }
+        return $result->format('Y-m-d H:i');
     }
 
     public function translate($key, array $placeholders = array()) {

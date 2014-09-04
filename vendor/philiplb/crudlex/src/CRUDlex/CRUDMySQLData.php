@@ -58,7 +58,7 @@ class CRUDMySQLData extends CRUDData {
         $sql = 'INSERT INTO '.$this->definition->getTable().' (`'.implode('`,`', $fields).'`) VALUES (NOW(), NOW(), 0, '.implode(',', $placeHolders).')';
         $this->db->executeUpdate($sql, $values);
 
-        return $this->db->lastInsertId();
+        $entity->set('id', $this->db->lastInsertId());
     }
 
     public function update(CRUDEntity $entity) {
@@ -118,28 +118,26 @@ class CRUDMySQLData extends CRUDData {
             $sql .= ' AND deleted_at IS NULL';
         }
         $result = $this->db->fetchAssoc($sql, $paramValues);
-        return $result['amount'];
+        return intval($result['amount']);
     }
 
     public function fetchReferences($entity) {
         if (!$entity) {
-            return null;
+            return;
         }
         foreach ($this->definition->getFieldNames() as $field) {
             if ($this->definition->getType($field) !== 'reference') {
                 continue;
             }
-            $sql = 'SELECT '.$this->definition->getReferenceNameField($field).' FROM ';
+            $nameField = $this->definition->getReferenceNameField($field);
+            $sql = 'SELECT '.$nameField.' FROM ';
             $sql .= $this->definition->getReferenceTable($field).' WHERE id = ? AND deleted_at IS NULL';
             $result = $this->db->fetchAssoc($sql, array($entity->get($field)));
             if ($result) {
                 $entity->set($field,
-                    array('id' => $entity->get($field), 'name' => $this->definition->getReferenceNameField($field)));
-            } else {
-                $entity->set($field, null);
+                    array('id' => $entity->get($field), 'name' => $result[$nameField]));
             }
         }
-        return $entity;
     }
 
 }
