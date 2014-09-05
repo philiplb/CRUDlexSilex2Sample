@@ -1,7 +1,7 @@
 RewriteEngine On
-RewriteBase /~philiplb/CRUDlexSample/web/
-RewriteRule ^index\.php$ - [L]
+# Set if needed.
+#RewriteBase /CRUDlexSample/web/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /~philiplb/CRUDlexSample/index.php [L]
+RewriteRule . index.php [L]
 Options +Indexes +FollowSymLinks +ExecCGI
