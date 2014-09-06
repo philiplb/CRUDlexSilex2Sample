@@ -12,8 +12,9 @@
 namespace CRUDlexTests;
 
 use CRUDlex\CRUDServiceProvider;
-use CRUDlexTestEnv\CRUDTestDataFactory;
+use CRUDlex\CRUDMySQLDataFactory;
 use Silex\Application;
+use Silex\Provider\DoctrineServiceProvider;
 
 class CRUDServiceProviderTest extends \PHPUnit_Framework_TestCase {
 
@@ -24,9 +25,21 @@ class CRUDServiceProviderTest extends \PHPUnit_Framework_TestCase {
     protected $dataFactory;
 
     protected function setUp() {
+        $app = new Application();
+        $app->register(new DoctrineServiceProvider(), array(
+            'dbs.options' => array(
+                'default' => array(
+                    'host'      => '127.0.0.1',
+                    'dbname'    => 'crudTest',
+                    'user'      => 'root',
+                    'password'  => '',
+                    'charset'   => 'utf8',
+                )
+            ),
+        ));
         $this->crudFile = __DIR__.'/../crud.yml';
         $this->stringsFile = __DIR__.'/../../src/strings.yml';
-        $this->dataFactory = new CRUDTestDataFactory();
+        $this->dataFactory = new CRUDMySQLDataFactory($app['db']);
     }
 
     public function testBoot() {
@@ -96,6 +109,10 @@ class CRUDServiceProviderTest extends \PHPUnit_Framework_TestCase {
         $expected = '2014-08-30';
         $this->assertSame($read, $expected);
 
+        $read = $crudServiceProvider->formatDate('2014-08-30');
+        $expected = '2014-08-30';
+        $this->assertSame($read, $expected);
+
         $read = $crudServiceProvider->formatDate('');
         $expected = '';
         $this->assertSame($read, $expected);
@@ -104,15 +121,34 @@ class CRUDServiceProviderTest extends \PHPUnit_Framework_TestCase {
         $expected = '';
         $this->assertSame($read, $expected);
 
-        $failed = false;
-        try {
-            $crudServiceProvider->formatDate('foo');
-            $failed = true;
-        } catch (\Exception $e) {
-        }
-        if ($failed) {
-            $this->fail('Expected exception');
-        }
+        $read = $crudServiceProvider->formatDate('foo');
+        $expected = 'foo';
+        $this->assertSame($read, $expected);
+    }
+
+    public function testFormatDateTime() {
+        $crudServiceProvider = new CRUDServiceProvider();
+        $crudServiceProvider->init($this->dataFactory, $this->crudFile, $this->stringsFile);
+
+        $read = $crudServiceProvider->formatDateTime('2014-08-30 12:00:00');
+        $expected = '2014-08-30 12:00';
+        $this->assertSame($read, $expected);
+
+        $read = $crudServiceProvider->formatDateTime('2014-08-30 12:00');
+        $expected = '2014-08-30 12:00';
+        $this->assertSame($read, $expected);
+
+        $read = $crudServiceProvider->formatDateTime('');
+        $expected = '';
+        $this->assertSame($read, $expected);
+
+        $read = $crudServiceProvider->formatDateTime(null);
+        $expected = '';
+        $this->assertSame($read, $expected);
+
+        $read = $crudServiceProvider->formatDateTime('foo');
+        $expected = 'foo';
+        $this->assertSame($read, $expected);
     }
 
     public function testTranslate() {

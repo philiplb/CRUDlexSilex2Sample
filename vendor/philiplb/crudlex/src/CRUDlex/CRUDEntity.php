@@ -36,6 +36,10 @@ class CRUDEntity {
         return $this->entity[$field];
     }
 
+    public function getDefinition() {
+        return $this->definition;
+    }
+
     public function validate(CRUDData $data) {
 
         $fields = $this->definition->getEditableFieldNames();
@@ -65,6 +69,16 @@ class CRUDEntity {
                 }
             }
 
+            // Check for set type
+            $type = $this->definition->getType($field);
+            if ($type == 'set' && $this->entity[$field]) {
+                $setItems = $this->definition->getSetItems($field);
+                if (!in_array($this->entity[$field], $setItems)) {
+                    $errors[$field]['input'] = true;
+                    $valid = false;
+                }
+            }
+
             // Check for int type
             $type = $this->definition->getType($field);
             if ($type == 'int' && $this->entity[$field] !== '' && (string)(int)$this->entity[$field] != $this->entity[$field]) {
@@ -73,7 +87,15 @@ class CRUDEntity {
             }
 
             // Check for date type
-            if ($type == 'date' && $this->entity[$field] !== '' && \DateTime::createFromFormat('Y-m-d', $this->entity[$field]) === false) {
+            if ($type == 'date' && $this->entity[$field] && \DateTime::createFromFormat('Y-m-d', $this->entity[$field]) === false) {
+                $errors[$field]['input'] = true;
+                $valid = false;
+            }
+
+            // Check for datetime type
+            if ($type == 'datetime' && $this->entity[$field] &&
+                \DateTime::createFromFormat('Y-m-d H:i', $this->entity[$field]) === false &&
+                \DateTime::createFromFormat('Y-m-d H:i:s', $this->entity[$field]) === false) {
                 $errors[$field]['input'] = true;
                 $valid = false;
             }

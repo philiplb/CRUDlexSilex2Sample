@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `book` (
   `pages` int(11) NOT NULL,
   `release` datetime DEFAULT NULL,
   `library` int(11) NOT NULL,
+  `description` text NOT NULL,
   PRIMARY KEY (`id`),
   KEY `library` (`library`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
@@ -39,6 +40,9 @@ CREATE TABLE IF NOT EXISTS `library` (
   `deleted_at` datetime DEFAULT NULL,
   `version` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `opening` datetime DEFAULT NULL,
+  `homepage` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 

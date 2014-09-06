@@ -7,10 +7,18 @@ library:
       label: Name
       required: true
       unique: true
+    type:
+      type: set
+      label: Type
+      setitems: [small,medium,large]
+    opening:
+      type: datetime
+      label: Opening
 
 book:
   label: Book
   table: book
+  listFields: [author, title, library]
   fields:
     title:
       type: text

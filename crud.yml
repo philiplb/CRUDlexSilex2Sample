@@ -7,6 +7,16 @@ library:
       label: Name
       required: true
       unique: true
+    type:
+      type: set
+      label: Type
+      setitems: [small,medium,large]
+    opening:
+      type: datetime
+      label: Opening
+    homepage:
+      type: url
+      label: Homepage
 
 book:
   label: Book
@@ -36,3 +46,6 @@ book:
         nameField: name
         entity: library
       required: true
+    description:
+      type: multiline
+      label: Description
