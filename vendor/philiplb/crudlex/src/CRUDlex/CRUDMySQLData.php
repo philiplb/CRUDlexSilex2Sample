@@ -51,8 +51,10 @@ class CRUDMySQLData extends CRUDData {
         $values = array();
         for ($i = 0; $i < count($formFields); ++$i) {
             $placeHolders[] = '?';
-            $val = $entity->get($formFields[$i]);
-            $value = $val ? $val : null;
+            $value = $entity->get($formFields[$i]);
+            if ($this->definition->getType($formFields[$i]) == 'bool') {
+                $value = $value ? 1 : 0;
+            }
             $values[] = $value;
         }
         $sql = 'INSERT INTO '.$this->definition->getTable().' (`'.implode('`,`', $fields).'`) VALUES (NOW(), NOW(), 0, '.implode(',', $placeHolders).')';
@@ -68,7 +70,10 @@ class CRUDMySQLData extends CRUDData {
         $values = array();
         $sets = array();
         for ($i = 0; $i < count($formFields); ++$i) {
-            $value = $entity->get($formFields[$i]) ? $entity->get($formFields[$i]) : null;
+            $value = $entity->get($formFields[$i]);
+            if ($this->definition->getType($formFields[$i]) == 'bool') {
+                $value = $value ? 1 : 0;
+            }
             $values[] = $value;
             $sets[] = '`'.$formFields[$i].'`=?';
         }

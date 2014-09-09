@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "3bb88851820ec129f734e4b29a6e5f1d",
+    "hash": "b8ad7f242c2c81625d14decbb70c7418",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -483,16 +483,16 @@
         },
         {
             "name": "philiplb/crudlex",
-            "version": "0.9.2",
+            "version": "0.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/philiplb/CRUDlex.git",
-                "reference": "c11bd641f3701aadd866202bdf5782070cb3e642"
+                "reference": "0cc0db7368d9dd7d6db21ba147c289831b1219c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/philiplb/CRUDlex/zipball/c11bd641f3701aadd866202bdf5782070cb3e642",
-                "reference": "c11bd641f3701aadd866202bdf5782070cb3e642",
+                "url": "https://api.github.com/repos/philiplb/CRUDlex/zipball/0cc0db7368d9dd7d6db21ba147c289831b1219c8",
+                "reference": "0cc0db7368d9dd7d6db21ba147c289831b1219c8",
                 "shasum": ""
             },
             "require": {
@@ -531,7 +531,7 @@
                 "crud",
                 "silex"
             ],
-            "time": "2014-09-04 19:55:44"
+            "time": "2014-09-09 20:20:39"
         },
         {
             "name": "pimple/pimple",

@@ -3,7 +3,13 @@ CRUDlex
 
 CRUDlex is an easy to use CRUD generator for Silex.
 
-Make sure to checkout the sample:
+Read the manual:
+
+[Manual](docs/0_manual.md)
+
+
+The manual is a reference describing every feature of CRUDlex. For a complete
+example, checkout the sample project with the classic libraries and books:
 
 [CRUDlex Sample](https://github.com/philiplb/CRUDlexSample)
 

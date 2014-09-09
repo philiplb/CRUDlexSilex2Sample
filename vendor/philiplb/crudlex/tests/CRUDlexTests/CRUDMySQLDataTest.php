@@ -232,4 +232,33 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $this->dataBook->fetchReferences(null);
     }
 
+    public function testBoolHandling() {
+        $libraryA = $this->dataLibrary->createEmpty();
+        $libraryA->set('name', 'lib');
+        $this->dataLibrary->create($libraryA);
+
+        $read = $this->dataLibrary->get($libraryA->get('id'))->get('isOpenOnSundays');
+        $this->assertFalse($read);
+
+        $libraryB = $this->dataLibrary->createEmpty();
+        $libraryB->set('name', 'lib');
+        $libraryB->set('isOpenOnSundays', '1');
+        $this->dataLibrary->create($libraryB);
+
+        $read = $this->dataLibrary->get($libraryB->get('id'))->get('isOpenOnSundays');
+        $this->assertTrue($read);
+
+        $libraryA->set('isOpenOnSundays', '1');
+        $this->dataLibrary->update($libraryA);
+
+        $read = $this->dataLibrary->get($libraryA->get('id'))->get('isOpenOnSundays');
+        $this->assertTrue($read);
+
+        $libraryB->set('isOpenOnSundays', null);
+        $this->dataLibrary->update($libraryB);
+
+        $read = $this->dataLibrary->get($libraryB->get('id'))->get('isOpenOnSundays');
+        $this->assertFalse($read);
+    }
+
 }

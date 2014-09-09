@@ -3,6 +3,6 @@
         "silex/silex": "1.2.1",
         "symfony/twig-bridge": "2.5.3",
         "doctrine/dbal": "2.4.2",
-        "philiplb/crudlex": "0.9.2"
+        "philiplb/crudlex": "0.9.3"
     }
 }
