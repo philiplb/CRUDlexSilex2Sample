@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `library` (
   `type` varchar(255) DEFAULT NULL,
   `opening` datetime DEFAULT NULL,
   `homepage` varchar(255) DEFAULT NULL,
+  `isOpenOnSundays` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 

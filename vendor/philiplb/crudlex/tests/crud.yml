@@ -1,8 +1,6 @@
 library:
   label: Library
   table: library
-  childrenLabelFields:
-      book: title
   fields:
     name:
       type: text
@@ -19,10 +17,6 @@ library:
     isOpenOnSundays:
       type: bool
       label: 'Is open on sundays'
-    planet:
-      type: fixed
-      fixedvalue: Earth
-      label: 'Planet of this library'
 
 book:
   label: Book
@@ -52,12 +46,3 @@ book:
         nameField: name
         entity: library
       required: true
-    cover:
-      type: file
-      filepath: 'tests/uploads'
-      label: 'Cover Image'
-      required: true
-    price:
-      type: float
-      label: Price
-      floatStep: 0.1

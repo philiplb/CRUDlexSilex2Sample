@@ -14,6 +14,4 @@ Here is the table of contents:
 - [Overriding Layouts](6_layouts.md)
 - [The CRUDServiceProvider](7_crudserviceprovider.md)
 
----
-
 Next: [Introduction](1_introduction.md)

@@ -75,21 +75,6 @@ An integer, no further parameters. Related MySQL-types:
 - INT (recommended)
 - BIGINT
 
-## Float
-
-```yml
-type: float
-floatStep: 0.1
-```
-
-An float. Related MySQL-types:
-- FLOAT (recommended)
-- DECIMAL
-- DOUBLE (recommended)
-- REAL
-
-The parameter "floatStep" is to set the step size in the form field.
-
 ## Boolean
 
 ```yml
@@ -187,38 +172,6 @@ book:
               entity: library
 ```
 
-If you want to show the children (books in this case) on the details page of the
-parent (library), you can activate it via the childrenLabelFields:
-
-```yml
-library:
-    table: lib
-    label: Library
-    childrenLabelFields:
-        book: title
-    fields:
-        name:
-            type: text
-book:
-    table: book
-    label: Book
-    fields:
-        title:
-            type: text
-        author:
-            type: text
-        library:
-            type: reference
-            reference:
-              table: lib
-              nameField: name
-              entity: library
-```
-
-On a details page of a library, all of its books are now displayed by their
-title field. If a library had more children and their label fields are not
-defined, it falls back to the id field.
-
 Don't forget to set the MySQL foreign key.
 
 ```sql
@@ -228,70 +181,6 @@ ADD CONSTRAINT `book_ibfk_1` FOREIGN KEY (`library`) REFERENCES `lib` (`id`);
 
 If a book still references a library, CRUDlex refuses to delete the library if
 you try.
-
-## File
-
-CRUDlex supports the handling of files. They get uploaded with the create or
-edit form, can be viewed, removed and replaced.
-
-To have an image field for our library, you would declare it like this:
-
-```yml
-library:
-    table: lib
-    label: Library
-    fields:
-        image:
-            type: file
-            filepath: uploads
-```
-
-The images are stored in the filesystem relative to your index.php within the
-subfolder you give with the filepath parameter.
-
-If you edit an entity with a file and re-upload it or if you delete the file or
-if you delete the entity, the current implementation is defensive and doesn't
-physically delete the files.
-
-You can override the storage-mechanism by giving an instance of a class
-implementing the CRUDFileProcessorInterface:
-
-
-```php
-$app->register(new CRUDlex\CRUDServiceProvider(), array(
-    'crud.file' => __DIR__ . '<yourCrud.yml>',
-    'crud.datafactory' => $dataFactory,
-    'crud.fileprocessor' => $myFileProcessor
-));
-```
-
-If this parameter is not given, an instance of the
-CRUDSimpleFilesystemFileProcessor is used.
-
-There is an implementation available for storing and retrieving the files at
-Amazon S3 within the [CRUDlex Addons](https://github.com/philiplb/CRUDlexAddons)
-package.
-
-
-## Fixed
-
-```yml
-type: fixed
-fixedvalue: abc
-```
-
-Fills the db always with the defined, fixed value, not editable. Related MySQL-types:
-- CHAR
-- VARCHAR (recommended)
-- TINYTEXT
-- TEXT
-- MEDIUMTEXT
-- LONGTEXT
-- TINYINT
-- SMALLINT
-- MEDIUMINT
-- INT
-- BIGINT
 
 ---
 

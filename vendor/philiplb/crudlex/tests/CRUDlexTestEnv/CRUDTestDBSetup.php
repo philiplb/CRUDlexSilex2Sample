@@ -6,11 +6,8 @@ use Silex\Provider\DoctrineServiceProvider;
 
 use CRUDlex\CRUDMySQLDataFactory;
 use CRUDlex\CRUDServiceProvider;
-use CRUDlexTestEnv\CRUDNullFileProcessor;
 
 class CRUDTestDBSetup {
-
-    private static $fileProcessor;
 
     public static function createAppAndDB() {
         $app = new Application();
@@ -43,8 +40,6 @@ class CRUDTestDBSetup {
             '  `pages` int(11) NOT NULL,'.
             '  `release` datetime DEFAULT NULL,'.
             '  `library` int(11) NOT NULL,'.
-            '  `cover` varchar(255) DEFAULT NULL,'.
-            '  `price` float NOT NULL,'.
             '  PRIMARY KEY (`id`),'.
             '  KEY `library` (`library`)'.
             ') ENGINE=MEMORY  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;';
@@ -60,7 +55,6 @@ class CRUDTestDBSetup {
             '  `type` varchar(255) DEFAULT NULL,'.
             '  `opening` datetime DEFAULT NULL,'.
             '  `isOpenOnSundays` tinyint(1) NOT NULL,'.
-            '  `planet` varchar(255) DEFAULT NULL,'.
             '  PRIMARY KEY (`id`)'.
             ') ENGINE=MEMORY  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
         $app['db']->executeUpdate($sql);
@@ -68,18 +62,13 @@ class CRUDTestDBSetup {
     }
 
     public static function createCRUDServiceProvider() {
-        self::$fileProcessor = new CRUDNullFileProcessor();
         $app = self::createAppAndDB();
         $crudServiceProvider = new CRUDServiceProvider();
         $dataFactory = new CRUDMySQLDataFactory($app['db']);
         $crudFile = __DIR__.'/../crud.yml';
         $stringsFile = __DIR__.'/../../src/strings.yml';
-        $crudServiceProvider->init($dataFactory, $crudFile, $stringsFile, self::$fileProcessor);
+        $crudServiceProvider->init($dataFactory, $crudFile, $stringsFile);
         return $crudServiceProvider;
-    }
-
-    public static function getFileProcessor() {
-        return self::$fileProcessor;
     }
 
 }

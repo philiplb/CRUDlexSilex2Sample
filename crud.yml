@@ -17,10 +17,14 @@ library:
     homepage:
       type: url
       label: Homepage
+    isOpenOnSundays:
+      type: bool
+      label: 'Is Open on Sundays'
 
 book:
   label: Book
   table: book
+  listFields: [author, title, library, description]
   fields:
     title:
       type: text
