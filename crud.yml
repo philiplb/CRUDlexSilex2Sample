@@ -48,3 +48,7 @@ book:
     description:
       type: multiline
       label: Description
+    price:
+      type: float
+      label: Price
+      floatStep: 0.1
