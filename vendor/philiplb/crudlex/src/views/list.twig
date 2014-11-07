@@ -11,7 +11,7 @@
 
 {% block content %}
     {% set fields = definition.getListFieldNames() %}
-    <a href="{{ app.url_generator.generate('crudCreate', {'entity': crudEntity}) }}" class="btn btn-success" style="margin: 5px 5px 5px 5px">Create New</a>
+    <a href="{{ app.url_generator.generate('crudCreate', {'entity': crudEntity}) }}" class="btn btn-success btn-crudlex">Create New</a>
 
     <div class="table-responsive">
     <table class="table table-striped">
@@ -29,8 +29,10 @@
                     <td>
                         {% include '@crud/renderField.twig' with {
                             entity: entity,
+                            crudEntity: crudEntity,
                             definition: definition,
-                            field: field
+                            field: field,
+                            mode: 'list'
                         } only %}
                     </td>
                 {% endfor %}

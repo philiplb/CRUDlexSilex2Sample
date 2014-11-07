@@ -13,29 +13,58 @@ namespace CRUDlex;
 
 use CRUDlex\CRUDEntity;
 use CRUDlex\CRUDData;
+use CRUDlex\CRUDFileProcessorInterface;
 
+/**
+ * MySQL CRUDData implementation using a given Doctrine DBAL instance.
+ */
 class CRUDMySQLData extends CRUDData {
 
+    /**
+     * Holds the Doctrine DBAL instance.
+     */
     protected $db;
 
-    public function __construct(CRUDEntityDefinition $definition, $db) {
-        $this->db = $db;
+    /**
+     * Constructor.
+     *
+     * @param CRUDEntityDefinition $definition
+     * the entity definition
+     * @param CRUDFileProcessorInterface $fileProcessor
+     * the file processor to use
+     * @param $db
+     * the Doctrine DBAL instance to use
+     */
+    public function __construct(CRUDEntityDefinition $definition, CRUDFileProcessorInterface $fileProcessor, $db) {
         $this->definition = $definition;
+        $this->fileProcessor = $fileProcessor;
+        $this->db = $db;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get($id) {
-        $sql = 'SELECT `'.implode('`,`', $this->definition->getFieldNames()).'` FROM '.$this->definition->getTable();
-        $sql .= ' WHERE id = ? AND deleted_at IS NULL';
-        $row = $this->db->fetchAssoc($sql, array($id));
-        $entity = $this->hydrate($row);
-        return $entity;
+        $entities = $this->listEntries(array('id' => $id));
+        if (count($entities) == 0) {
+            return null;
+        }
+        return $entities[0];
     }
 
-    public function listEntries() {
+    /**
+     * {@inheritdoc}
+     */
+    public function listEntries(array $filter = array()) {
         $fieldNames = $this->definition->getFieldNames();
         $sql = 'SELECT `'.implode('`,`', $fieldNames).'`';
         $sql .= ' FROM '.$this->definition->getTable().' WHERE deleted_at IS NULL';
-        $rows = $this->db->fetchAll($sql);
+        $values = array();
+        foreach ($filter as $field => $value) {
+            $sql .= ' AND `'.$field.'` = ?';
+            $values[] = $value;
+        }
+        $rows = $this->db->fetchAll($sql, $values);
         $entities = array();
         foreach ($rows as $row) {
             $entities[] = $this->hydrate($row);
@@ -43,6 +72,9 @@ class CRUDMySQLData extends CRUDData {
         return $entities;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function create(CRUDEntity $entity) {
         $formFields = $this->definition->getEditableFieldNames();
         $fields = array_merge(array('created_at', 'updated_at', 'version'),
@@ -51,8 +83,10 @@ class CRUDMySQLData extends CRUDData {
         $values = array();
         for ($i = 0; $i < count($formFields); ++$i) {
             $placeHolders[] = '?';
-            $val = $entity->get($formFields[$i]);
-            $value = $val ? $val : null;
+            $value = $entity->get($formFields[$i]);
+            if ($this->definition->getType($formFields[$i]) == 'bool') {
+                $value = $value ? 1 : 0;
+            }
             $values[] = $value;
         }
         $sql = 'INSERT INTO '.$this->definition->getTable().' (`'.implode('`,`', $fields).'`) VALUES (NOW(), NOW(), 0, '.implode(',', $placeHolders).')';
@@ -61,6 +95,9 @@ class CRUDMySQLData extends CRUDData {
         $entity->set('id', $this->db->lastInsertId());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function update(CRUDEntity $entity) {
         $formFields = $this->definition->getEditableFieldNames();
         $fields = array_merge(array('updated_at', 'version'),
@@ -68,7 +105,10 @@ class CRUDMySQLData extends CRUDData {
         $values = array();
         $sets = array();
         for ($i = 0; $i < count($formFields); ++$i) {
-            $value = $entity->get($formFields[$i]) ? $entity->get($formFields[$i]) : null;
+            $value = $entity->get($formFields[$i]);
+            if ($this->definition->getType($formFields[$i]) == 'bool') {
+                $value = $value ? 1 : 0;
+            }
             $values[] = $value;
             $sets[] = '`'.$formFields[$i].'`=?';
         }
@@ -80,8 +120,11 @@ class CRUDMySQLData extends CRUDData {
         return $this->db->lastInsertId();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete($id) {
-        foreach ($this->definition->getParents() as $parent) {
+        foreach ($this->definition->getChildren() as $parent) {
             $sql = 'SELECT COUNT(id) AS amount FROM '.$parent[0].' WHERE ';
             $sql .= $parent[1].' = ? AND deleted_at IS NULL';
             $result = $this->db->fetchAssoc($sql, array($id));
@@ -95,6 +138,9 @@ class CRUDMySQLData extends CRUDData {
         return true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getReferences($table, $nameField) {
         $sql = 'SELECT id, `'.$nameField.'` FROM '.$table.' WHERE deleted_at IS NULL ORDER BY `'.$nameField.'`';
         $entries = $this->db->fetchAll($sql);
@@ -105,7 +151,10 @@ class CRUDMySQLData extends CRUDData {
         return $result;
     }
 
-    public function countBy($table, $params, $paramsOperators, $includeDeleted) {
+    /**
+     * {@inheritdoc}
+     */
+    public function countBy($table, array $params, array $paramsOperators, $includeDeleted) {
         $sql = 'SELECT COUNT(id) AS amount FROM '.$table;
         $paramValues = array();
         $paramSQLs = array();
@@ -121,7 +170,10 @@ class CRUDMySQLData extends CRUDData {
         return intval($result['amount']);
     }
 
-    public function fetchReferences($entity) {
+    /**
+     * {@inheritdoc}
+     */
+    public function fetchReferences(CRUDEntity $entity = null) {
         if (!$entity) {
             return;
         }

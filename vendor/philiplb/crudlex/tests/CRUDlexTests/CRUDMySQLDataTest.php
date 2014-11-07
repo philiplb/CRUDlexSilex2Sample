@@ -11,6 +11,9 @@
 
 namespace CRUDlexTests;
 
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 use CRUDlexTestEnv\CRUDTestDBSetup;
 use CRUDlex\CRUDEntity;
 
@@ -45,6 +48,14 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $list = $this->dataLibrary->listEntries();
         $read = count($list);
         $expected = 2;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array('name' => 'nameB'));
+        $read = count($list);
+        $expected = 1;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array('name' => 'nameB', 'id' => 2));
+        $read = count($list);
+        $expected = 1;
         $this->assertSame($read, $expected);
     }
 
@@ -230,6 +241,183 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
 
         $this->dataBook->fetchReferences(null);
+    }
+
+    public function testBoolHandling() {
+        $libraryA = $this->dataLibrary->createEmpty();
+        $libraryA->set('name', 'lib');
+        $this->dataLibrary->create($libraryA);
+
+        $read = $this->dataLibrary->get($libraryA->get('id'))->get('isOpenOnSundays');
+        $this->assertFalse($read);
+
+        $libraryB = $this->dataLibrary->createEmpty();
+        $libraryB->set('name', 'lib');
+        $libraryB->set('isOpenOnSundays', '1');
+        $this->dataLibrary->create($libraryB);
+
+        $read = $this->dataLibrary->get($libraryB->get('id'))->get('isOpenOnSundays');
+        $this->assertTrue($read);
+
+        $libraryA->set('isOpenOnSundays', '1');
+        $this->dataLibrary->update($libraryA);
+
+        $read = $this->dataLibrary->get($libraryA->get('id'))->get('isOpenOnSundays');
+        $this->assertTrue($read);
+
+        $libraryB->set('isOpenOnSundays', null);
+        $this->dataLibrary->update($libraryB);
+
+        $read = $this->dataLibrary->get($libraryB->get('id'))->get('isOpenOnSundays');
+        $this->assertFalse($read);
+    }
+
+    public function testCreateFiles() {
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'lib');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $request = new Request(array(), array(
+            'title' => 'title',
+            'author' => 'author',
+            'pages' => 111,
+            'library' => $entityLibrary->get('id')
+        ), array(), array(), array(
+            'cover' => new UploadedFile(__DIR__.'/../test1.xml', 'test1.xml')
+        ));
+
+        $fileProcessor = CRUDTestDBSetup::getFileProcessor();
+        $fileProcessor->reset();
+
+        $this->dataBook->createFiles($request, $entityBook, 'book');
+
+        $this->assertTrue($fileProcessor->isCreateFileCalled());
+        $this->assertFalse($fileProcessor->isUpdateFileCalled());
+        $this->assertFalse($fileProcessor->isDeleteFileCalled());
+        $this->assertFalse($fileProcessor->isRenderFileCalled());
+
+        $fileProcessor->reset();
+    }
+
+    public function testUpdateFiles() {
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'lib');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $request = new Request(array(), array(
+            'title' => 'title',
+            'author' => 'author',
+            'pages' => 111,
+            'library' => $entityLibrary->get('id')
+        ), array(), array(), array(
+            'cover' => new UploadedFile(__DIR__.'/../test1.xml', 'test1.xml')
+        ));
+
+        $fileProcessor = CRUDTestDBSetup::getFileProcessor();
+        $fileProcessor->reset();
+
+        $this->dataBook->updateFiles($request, $entityBook, 'book');
+
+        $this->assertFalse($fileProcessor->isCreateFileCalled());
+        $this->assertTrue($fileProcessor->isUpdateFileCalled());
+        $this->assertFalse($fileProcessor->isDeleteFileCalled());
+        $this->assertFalse($fileProcessor->isRenderFileCalled());
+
+        $fileProcessor->reset();
+    }
+
+    public function testDeleteFile() {
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'lib');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $fileProcessor = CRUDTestDBSetup::getFileProcessor();
+        $fileProcessor->reset();
+
+        $this->dataBook->deleteFile($entityBook, 'book', 'cover');
+
+        $this->assertFalse($fileProcessor->isCreateFileCalled());
+        $this->assertFalse($fileProcessor->isUpdateFileCalled());
+        $this->assertTrue($fileProcessor->isDeleteFileCalled());
+        $this->assertFalse($fileProcessor->isRenderFileCalled());
+
+        $fileProcessor->reset();
+    }
+
+    public function testDeleteFiles() {
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'lib');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $fileProcessor = CRUDTestDBSetup::getFileProcessor();
+        $fileProcessor->reset();
+
+        $this->dataBook->deleteFiles($entityBook, 'book');
+
+        $this->assertFalse($fileProcessor->isCreateFileCalled());
+        $this->assertFalse($fileProcessor->isUpdateFileCalled());
+        $this->assertTrue($fileProcessor->isDeleteFileCalled());
+        $this->assertFalse($fileProcessor->isRenderFileCalled());
+
+        $fileProcessor->reset();
+    }
+
+    public function testRenderFile() {
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'lib');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $fileProcessor = CRUDTestDBSetup::getFileProcessor();
+        $fileProcessor->reset();
+
+        $this->dataBook->renderFile($entityBook, 'book', 'cover');
+
+        $this->assertFalse($fileProcessor->isCreateFileCalled());
+        $this->assertFalse($fileProcessor->isUpdateFileCalled());
+        $this->assertFalse($fileProcessor->isDeleteFileCalled());
+        $this->assertTrue($fileProcessor->isRenderFileCalled());
+
+        $fileProcessor->reset();
     }
 
 }

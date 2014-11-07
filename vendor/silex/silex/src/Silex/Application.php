@@ -42,7 +42,7 @@ use Silex\EventListener\StringToResponseListener;
  */
 class Application extends \Pimple implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '1.2.1';
+    const VERSION = '1.2.2';
 
     const EARLY_EVENT = 512;
     const LATE_EVENT  = -512;
@@ -313,7 +313,7 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
                 return;
             }
 
-            $ret = call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest());
+            $ret = call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $app);
 
             if ($ret instanceof Response) {
                 $event->setResponse($ret);
@@ -339,7 +339,7 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
                 return;
             }
 
-            call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse());
+            call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
         }, $priority);
     }
 
@@ -357,7 +357,7 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
         $app = $this;
 
         $this->on(KernelEvents::TERMINATE, function (PostResponseEvent $event) use ($callback, $app) {
-            call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse());
+            call_user_func($app['callback_resolver']->resolveCallback($callback), $event->getRequest(), $event->getResponse(), $app);
         }, $priority);
     }
 
