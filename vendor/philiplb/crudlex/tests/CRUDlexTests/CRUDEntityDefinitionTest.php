@@ -39,7 +39,9 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
             'author',
             'pages',
             'release',
-            'library'
+            'library',
+            'cover',
+            'price'
         );
         $this->assertSame($read, $expected);
     }
@@ -55,6 +57,13 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
+    public function testSetType() {
+        $read = $this->definitionLibrary->setType('name', 'multiline');
+        $read = $this->definitionLibrary->getType('name');
+        $expected = 'multiline';
+        $this->assertSame($read, $expected);
+    }
+
     public function testGetPublicFieldNames() {
         $read = $this->definition->getPublicFieldNames();
         $expected = array(
@@ -65,7 +74,9 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
             'author',
             'pages',
             'release',
-            'library'
+            'library',
+            'cover',
+            'price'
         );
         $this->assertSame($read, $expected);
     }
@@ -75,7 +86,7 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $expected = array(
             'author',
             'title',
-            'library',
+            'library'
         );
         $this->assertSame($read, $expected);
         $read = $this->definitionLibrary->getListFieldNames();
@@ -86,7 +97,8 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
             'name',
             'type',
             'opening',
-            'isOpenOnSundays'
+            'isOpenOnSundays',
+            'planet'
         );
         $this->assertSame($read, $expected);
     }
@@ -190,13 +202,77 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
-    public function testAddAndGetParent() {
-        $this->definition->addParent('foo', 'bar');
-        $read = $this->definition->getParents();
+    public function testAddAndGetChild() {
+        $this->definition->addChild('foo', 'bar', 'bla');
+        $read = $this->definition->getChildren();
         $expected = array(
-            array('foo', 'bar')
+            array('foo', 'bar', 'bla')
         );
         $this->assertSame($read, $expected);
+    }
+
+    public function testGetFilePath() {
+        $read = $this->definition->getFilePath('cover');
+        $expected = 'tests/uploads';
+        $this->assertSame($read, $expected);
+        $read = $this->definition->getFilePath('title');
+        $this->assertNull($read);
+        $read = $this->definition->getFilePath('foo');
+        $this->assertNull($read);
+        $read = $this->definition->getFilePath(null);
+        $this->assertNull($read);
+    }
+
+    public function testGetFixedValue() {
+        $read = $this->definitionLibrary->getFixedValue('planet');
+        $expected = 'Earth';
+        $this->assertSame($read, $expected);
+        $read = $this->definitionLibrary->getFixedValue('title');
+        $this->assertNull($read);
+        $read = $this->definitionLibrary->getFixedValue('foo');
+        $this->assertNull($read);
+        $read = $this->definitionLibrary->getFixedValue(null);
+        $this->assertNull($read);
+    }
+
+    public function testSetFixedValue() {
+        $this->definitionLibrary->setFixedValue('planet', 'Mars');
+        $read = $this->definitionLibrary->getFixedValue('planet');
+        $expected = 'Mars';
+        $this->assertSame($read, $expected);
+    }
+
+    public function testSetRequired() {
+        $this->definition->setRequired('cover', false);
+        $read = $this->definition->isRequired('cover');
+        $expected = false;
+        $this->assertSame($read, $expected);
+        $this->definition->setRequired('cover', true);
+        $read = $this->definition->isRequired('cover');
+        $expected = true;
+        $this->assertSame($read, $expected);
+        $this->definition->setRequired('foo', true);
+        $read = $this->definition->isRequired('foo');
+        $expected = true;
+        $this->assertSame($read, $expected);
+    }
+
+    public function testChildrenLabelFields() {
+        $read = $this->definitionLibrary->getChildrenLabelFields();
+        $expected = array('book' => 'title');
+        $this->assertSame($read, $expected);
+    }
+
+    public function testGetFloatStep() {
+        $read = $this->definition->getFloatStep('price');
+        $expected = 0.1;
+        $this->assertSame($read, $expected);
+        $read = $this->definition->getFloatStep('title');
+        $this->assertNull($read);
+        $read = $this->definition->getFloatStep('foo');
+        $this->assertNull($read);
+        $read = $this->definition->getFloatStep(null);
+        $this->assertNull($read);
     }
 
 }
