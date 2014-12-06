@@ -10,6 +10,7 @@
  */
 
 $loader = require __DIR__.'/../vendor/autoload.php';
+$loader->add('CRUDlex', __DIR__.'/../../CRUDlex/src');
 
 $app = new Silex\Application();
 
