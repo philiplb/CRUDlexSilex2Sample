@@ -1,6 +1,36 @@
 CRUDlex Changelog
 =================
 
+## 0.9.7
+Released: Upcoming
+
+## 0.9.6
+Released: 2015-02-20
+- Added the possibility to cascade delete children
+- Added ids to the rendered fields of an entity details page so they can be hooked easily with JavaScript
+- Added ids and classes to the rows and columns of the entity list page so they can be hooked easily with JavaScript
+- Added ids and classes all buttons so they can be hooked easily with JavaScript
+- Added an entity related id to the page wrapping div so everything can be hooked easily with JavaScript
+- Fixed a SQL error for not required date and datetime fields where no value was selected
+- Fixed a SQL error for not required reference fields where no value was selected
+- Updated dependencies to:
+    - Bootstrap 3.3.1
+    - moment.js 2.8.4
+    - "symfony/twig-bridge": "~2.6"
+    - "doctrine/dbal": "~2.5"
+    - "symfony/yaml": "~2.6"
+    - "phpunit/phpunit": "~4.4",
+    - "satooshi/php-coveralls": "0.7.*@dev",
+    - "symfony/browser-kit": "~2.6",
+    - "symfony/css-selector": "~2.6",
+    - "apigen/apigen": "4.0.0-RC4"
+- Added pagination to the list view
+- Added the ability to hand in default values to the create form
+- Added edit and delete buttons to the children table of the entities show page
+- CRUDMySQLData::listEntries handles null filter values now correctly
+- Fixed values are also returned in CRUDEntity::get() now
+- Huge performance optimization when listing entities referencing other entities
+
 ## 0.9.5
 Released: 2014-11-07
 - Changed CRUDEntityDefinition::addParent() to CRUDEntityDefinition::addChild() and CRUDEntityDefinition::getParents() to CRUDEntityDefinition::getChildren() as it was confusing

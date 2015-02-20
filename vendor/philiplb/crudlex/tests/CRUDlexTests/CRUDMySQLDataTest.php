@@ -57,6 +57,35 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $read = count($list);
         $expected = 1;
         $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array('type' => null));
+        $read = count($list);
+        $expected = 2;
+        $this->assertSame($read, $expected);
+
+        for ($i = 0; $i < 15; ++$i) {
+            $entity->set('name', 'name'.$i);
+            $this->dataLibrary->create($entity);
+        }
+        $list = $this->dataLibrary->listEntries(array(), null, null);
+        $read = count($list);
+        $expected = 17;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array(), null, 5);
+        $read = count($list);
+        $expected = 5;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array(), 0, 5);
+        $read = count($list);
+        $expected = 5;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array(), 15, 5);
+        $read = count($list);
+        $expected = 2;
+        $this->assertSame($read, $expected);
+        $list = $this->dataLibrary->listEntries(array(), 5, null);
+        $read = count($list);
+        $expected = 12;
+        $this->assertSame($read, $expected);
     }
 
     public function testGet() {
@@ -124,6 +153,24 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($deleted);
         $deleted = $this->dataLibrary->delete($entityLibrary->get('id'));
         $this->assertTrue($deleted);
+
+        $this->dataLibrary->getDefinition()->setDeleteCascade(true);
+
+        $entityLibrary = $this->dataLibrary->createEmpty();
+        $entityLibrary->set('name', 'nameParentTestDelete');
+        $this->dataLibrary->create($entityLibrary);
+
+        $entityBook = $this->dataBook->createEmpty();
+        $entityBook->set('title', 'title');
+        $entityBook->set('author', 'author');
+        $entityBook->set('pages', 111);
+        $entityBook->set('library', $entityLibrary->get('id'));
+        $this->dataBook->create($entityBook);
+
+        $deleted = $this->dataLibrary->delete($entityLibrary->get('id'));
+        $this->assertTrue($deleted);
+        $entityBook2 = $this->dataBook->get($entityBook->get('id'));
+        $this->assertNull($entityBook2);
     }
 
     public function testGetReferences() {
@@ -162,6 +209,24 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $this->dataLibrary->delete($library->get('id'));
 
         $table = $this->dataLibrary->getDefinition()->getTable();
+
+        $read = $this->dataLibrary->countBy(
+            $table,
+            array(),
+            array(),
+            false
+        );
+        $expected = 3;
+        $this->assertSame($read, $expected);
+
+        $read = $this->dataLibrary->countBy(
+            $table,
+            array(),
+            array(),
+            true
+        );
+        $expected = 2;
+        $this->assertSame($read, $expected);
 
         $read = $this->dataLibrary->countBy(
                 $table,
@@ -235,12 +300,17 @@ class CRUDMySQLDataTest extends \PHPUnit_Framework_TestCase {
         $expected = '1';
         $this->assertSame($read, $expected);
 
-        $this->dataBook->fetchReferences($entityBook);
-        $read = $entityBook->get('library');
+        $books = array($entityBook);
+        $this->dataBook->fetchReferences($books);
+        $read = $books[0]->get('library');
         $expected = array('id' => '1', 'name' => 'lib');
         $this->assertSame($read, $expected);
 
-        $this->dataBook->fetchReferences(null);
+        $nullBooks = null;
+        $this->dataBook->fetchReferences($nullBooks);
+
+        $emptyBooks = array();
+        $this->dataBook->fetchReferences($emptyBooks);
     }
 
     public function testBoolHandling() {

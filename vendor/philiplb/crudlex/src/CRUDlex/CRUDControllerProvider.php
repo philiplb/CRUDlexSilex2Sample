@@ -150,17 +150,17 @@ class CRUDControllerProvider implements ControllerProviderInterface {
         $definition = $crudData->getDefinition();
         $fields = $definition->getEditableFieldNames();
 
-        if ($app['request']->getMethod() == 'POST') {
-            foreach ($fields as $field) {
-                if ($definition->getType($field) == 'file') {
-                    $file = $app['request']->files->get($field);
-                    if ($file) {
-                        $instance->set($field, $file->getClientOriginalName());
-                    }
-                } else {
-                    $instance->set($field, $app['request']->get($field));
+        foreach ($fields as $field) {
+            if ($definition->getType($field) == 'file') {
+                $file = $app['request']->files->get($field);
+                if ($file) {
+                    $instance->set($field, $file->getClientOriginalName());
                 }
+            } else {
+                $instance->set($field, $app['request']->get($field));
             }
+        }
+        if ($app['request']->getMethod() == 'POST') {
             $validation = $instance->validate($crudData);
             if (!$validation['valid']) {
                 $errors = $validation['errors'];
@@ -203,17 +203,29 @@ class CRUDControllerProvider implements ControllerProviderInterface {
         if (!$crudData) {
             return $this->getNotFoundPage($app, $app['crud']->translate('entityNotFound'));
         }
-        $entitiesRaw = $crudData->listEntries();
-        $entities = array();
-        foreach ($entitiesRaw as $curEntity) {
-            $crudData->fetchReferences($curEntity);
-            $entities[] = $curEntity;
-        }
         $definition = $crudData->getDefinition();
+        $pageSize = $definition->getPageSize();
+        $total = $crudData->countBy($definition->getTable(), array(), array(), true);
+        $page = abs(intval($app['request']->get('crudPage', 0)));
+        $maxPage = intval($total / $pageSize);
+        if ($total % $pageSize == 0) {
+            $maxPage--;
+        }
+        if ($page > $maxPage) {
+            $page = $maxPage;
+        }
+        $skip = $page * $pageSize;
+        $entities = $crudData->listEntries(array(), $skip, $pageSize);
+        $crudData->fetchReferences($entities);
+
         return $app['twig']->render('@crud/list.twig', array(
             'crudEntity' => $entity,
             'definition' => $definition,
             'entities' => $entities,
+            'pageSize' => $pageSize,
+            'maxPage' => $maxPage,
+            'page' => $page,
+            'total' => $total,
             'layout' => $this->getLayout($app, 'list', $entity)
         ));
     }
@@ -237,10 +249,12 @@ class CRUDControllerProvider implements ControllerProviderInterface {
             return $this->getNotFoundPage($app, $app['crud']->translate('entityNotFound'));
         }
         $instance = $crudData->get($id);
-        $crudData->fetchReferences($instance);
         if (!$instance) {
             return $this->getNotFoundPage($app, $app['crud']->translate('instanceNotFound'));
         }
+        $instance = array($instance);
+        $crudData->fetchReferences($instance);
+        $instance = $instance[0];
         $definition = $crudData->getDefinition();
 
         $childrenLabelFields = $definition->getChildrenLabelFields();
@@ -356,8 +370,23 @@ class CRUDControllerProvider implements ControllerProviderInterface {
         $crudData->deleteFiles($instance, $entity);
         $deleted = $crudData->delete($id);
         if ($deleted) {
+
+            $redirectPage = 'crudList';
+            $redirectParameters = array(
+                'entity' => $entity
+            );
+            $redirectEntity = $app['request']->get('redirectEntity');
+            $redirectId = $app['request']->get('redirectId');
+            if ($redirectEntity && $redirectId) {
+                $redirectPage = 'crudShow';
+                $redirectParameters = array(
+                    'entity' => $redirectEntity,
+                    'id' => $redirectId
+                );
+            }
+
             $app['session']->getFlashBag()->add('success', $app['crud']->translate('delete.success', array($crudData->getDefinition()->getLabel())));
-            return $app->redirect($app['url_generator']->generate('crudList', array('entity' => $entity)));
+            return $app->redirect($app['url_generator']->generate($redirectPage, $redirectParameters));
         } else {
             $app['session']->getFlashBag()->add('danger', $app['crud']->translate('delete.error', array($crudData->getDefinition()->getLabel())));
             return $app->redirect($app['url_generator']->generate('crudShow', array('entity' => $entity, 'id' => $id)));

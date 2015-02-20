@@ -275,4 +275,28 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertNull($read);
     }
 
+    public function testIsSetDeleteCascade() {
+        $this->definitionLibrary->setDeleteCascade(true);
+        $read = $this->definitionLibrary->isDeleteCascade();
+        $this->assertTrue($read);
+        $this->definitionLibrary->setDeleteCascade(false);
+        $read = $this->definitionLibrary->isDeleteCascade();
+        $this->assertFalse($read);
+    }
+
+    public function testGetSetPageSize() {
+        $read = $this->definition->getPageSize();
+        $expected = 25;
+        $this->assertSame($read, $expected);
+        $this->definition->setPageSize(5);
+        $read = $this->definition->getPageSize();
+        $expected = 5;
+        $this->assertSame($read, $expected);
+    }
+
+    public function testGetServiceProvider() {
+        $read = $this->definition->getServiceProvider();
+        $this->assertNotNull($read);
+    }
+
 }

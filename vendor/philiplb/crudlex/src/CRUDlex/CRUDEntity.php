@@ -65,6 +65,11 @@ class CRUDEntity {
      * else the raw value
      */
     public function get($field) {
+
+        if ($this->definition->getFixedValue($field) !== null) {
+            return $this->definition->getFixedValue($field);
+        }
+
         if (!key_exists($field, $this->entity)) {
             return null;
         }
@@ -119,7 +124,8 @@ class CRUDEntity {
             $errors[$field] = array('required' => false, 'unique' => false, 'input' => false);
 
             // Check for required
-            if ($this->definition->isRequired($field) && (!key_exists($field, $this->entity)
+            if ($this->definition->isRequired($field) && !$this->definition->getFixedValue($field) &&
+                (!key_exists($field, $this->entity)
                 || $this->entity[$field] === null
                 || $this->entity[$field] === '')) {
                 $errors[$field]['required'] = true;
