@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `book` (
   `release` datetime DEFAULT NULL,
   `library` int(11) NOT NULL,
   `description` text NOT NULL,
-  `price` float NOT NULL,
+  `price` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `library` (`library`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
