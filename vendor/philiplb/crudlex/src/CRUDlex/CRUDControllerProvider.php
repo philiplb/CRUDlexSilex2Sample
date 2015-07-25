@@ -16,7 +16,6 @@ use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-use CRUDlex\CRUDEntity;
 
 /**
  * This is the ControllerProvider offering all CRUD pages.
@@ -204,8 +203,27 @@ class CRUDControllerProvider implements ControllerProviderInterface {
             return $this->getNotFoundPage($app, $app['crud']->translate('entityNotFound'));
         }
         $definition = $crudData->getDefinition();
+
+        $filter = array();
+        $filterActive = false;
+        $filterToUse = array();
+        $filterOperators = array();
+        foreach ($definition->getFilter() as $filterField) {
+            $filter[$filterField] = $app['request']->get('crudFilter'.$filterField);
+            if ($filter[$filterField]) {
+                $filterActive = true;
+                if ($definition->getType($filterField) == 'bool') {
+                    $filterToUse[$filterField] = $filter[$filterField] == 'true' ? 1 : 0;
+                    $filterOperators[$filterField] = '=';
+                } else {
+                    $filterToUse[$filterField] = '%'.$filter[$filterField].'%';
+                    $filterOperators[$filterField] = 'LIKE';
+                }
+            }
+        }
+
         $pageSize = $definition->getPageSize();
-        $total = $crudData->countBy($definition->getTable(), array(), array(), true);
+        $total = $crudData->countBy($definition->getTable(), $filterToUse, $filterOperators, true);
         $page = abs(intval($app['request']->get('crudPage', 0)));
         $maxPage = intval($total / $pageSize);
         if ($total % $pageSize == 0) {
@@ -215,17 +233,21 @@ class CRUDControllerProvider implements ControllerProviderInterface {
             $page = $maxPage;
         }
         $skip = $page * $pageSize;
-        $entities = $crudData->listEntries(array(), $skip, $pageSize);
+
+        $entities = $crudData->listEntries($filterToUse, $filterOperators, $skip, $pageSize);
         $crudData->fetchReferences($entities);
 
         return $app['twig']->render('@crud/list.twig', array(
             'crudEntity' => $entity,
+            'crudData' => $crudData,
             'definition' => $definition,
             'entities' => $entities,
             'pageSize' => $pageSize,
             'maxPage' => $maxPage,
             'page' => $page,
             'total' => $total,
+            'filter' => $filter,
+            'filterActive' => $filterActive,
             'layout' => $this->getLayout($app, 'list', $entity)
         ));
     }

@@ -27,7 +27,7 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->definitionLibrary = $crudServiceProvider->getData('library')->getDefinition();
     }
 
-    public function testGetFieldNames() {
+    public function testGetSetFieldNames() {
         $read = $this->definition->getFieldNames();
         $expected = array(
             'id',
@@ -101,6 +101,15 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
             'planet'
         );
         $this->assertSame($read, $expected);
+        $old = $read;
+        $expected = array(
+            'id',
+            'name'
+        );
+        $this->definitionLibrary->setListFieldNames($expected);
+        $read = $this->definitionLibrary->getListFieldNames();
+        $this->assertSame($read, $expected);
+        $this->definitionLibrary->setListFieldNames($old);
     }
 
     public function testIsRequired() {
@@ -150,7 +159,7 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertNull($read);
     }
 
-    public function testGetSetItems() {
+    public function testGetSetSetItems() {
         $read = $this->definitionLibrary->getSetItems('type');
         $expected = array('small', 'medium', 'large');
         $this->assertSame($read, $expected);
@@ -163,9 +172,14 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
 
         $read = $this->definitionLibrary->getSetItems(null);
         $this->assertNull($read);
+
+        $expected = array('red', 'green', 'blue');
+        $this->definitionLibrary->setSetItems('type', $expected);
+        $read = $this->definitionLibrary->getSetItems('type');
+        $this->assertSame($read, $expected);
     }
 
-    public function testIsUnique() {
+    public function testIsSetUnique() {
         $read = $this->definitionLibrary->isUnique('name');
         $this->assertTrue($read);
         $read = $this->definition->isUnique('release');
@@ -174,9 +188,13 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertFalse($read);
         $read = $this->definition->isUnique(null);
         $this->assertFalse($read);
+
+        $this->definitionLibrary->setUnique('name', false);
+        $read = $this->definitionLibrary->isUnique('name');
+        $this->assertFalse($read);
     }
 
-    public function testGetFieldLabel() {
+    public function testGetSetFieldLabel() {
         $read = $this->definition->getFieldLabel('library');
         $expected = 'Library';
         $this->assertSame($read, $expected);
@@ -188,17 +206,32 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
         $read = $this->definition->getFieldLabel(null);
         $this->assertNull($read);
-    }
 
-    public function testGetTable() {
-        $read = $this->definition->getTable();
-        $expected = 'book';
+        $expected = 'Public Library';
+        $this->definition->setFieldLabel('library', $expected);
+        $read = $this->definition->getFieldLabel('library');
         $this->assertSame($read, $expected);
     }
 
-    public function testGetLabel() {
+    public function testGetSetTable() {
+        $read = $this->definition->getTable();
+        $expected = 'book';
+        $this->assertSame($read, $expected);
+
+        $expected = 'books';
+        $this->definition->setTable($expected);
+        $read = $this->definition->getTable();
+        $this->assertSame($read, $expected);
+    }
+
+    public function testGetSetLabel() {
         $read = $this->definition->getLabel();
         $expected = 'Book';
+        $this->assertSame($read, $expected);
+
+        $expected = 'Shiny Book';
+        $this->definition->setLabel($expected);
+        $read = $this->definition->getLabel();
         $this->assertSame($read, $expected);
     }
 
@@ -211,7 +244,7 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
-    public function testGetFilePath() {
+    public function testGetSetFilePath() {
         $read = $this->definition->getFilePath('cover');
         $expected = 'tests/uploads';
         $this->assertSame($read, $expected);
@@ -221,6 +254,11 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertNull($read);
         $read = $this->definition->getFilePath(null);
         $this->assertNull($read);
+
+        $expected = 'tests/uploaded';
+        $this->definition->setFilePath('cover', $expected);
+        $read = $this->definition->getFilePath('cover');
+        $this->assertSame($read, $expected);
     }
 
     public function testGetFixedValue() {
@@ -257,13 +295,18 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
-    public function testChildrenLabelFields() {
+    public function testGetSetChildrenLabelFields() {
         $read = $this->definitionLibrary->getChildrenLabelFields();
         $expected = array('book' => 'title');
         $this->assertSame($read, $expected);
+        $old = $read;
+        $expected = array('book' => 'author');
+        $this->definitionLibrary->setChildrenLabelFields($expected);
+        $read = $this->definitionLibrary->getChildrenLabelFields();
+        $this->assertSame($read, $expected);
     }
 
-    public function testGetFloatStep() {
+    public function testGetSetFloatStep() {
         $read = $this->definition->getFloatStep('price');
         $expected = 0.1;
         $this->assertSame($read, $expected);
@@ -273,6 +316,11 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertNull($read);
         $read = $this->definition->getFloatStep(null);
         $this->assertNull($read);
+
+        $expected = 0.2;
+        $this->definition->setFloatStep('price', $expected);
+        $read = $this->definition->getFloatStep('price');
+        $this->assertSame($read, $expected);
     }
 
     public function testIsSetDeleteCascade() {
@@ -294,9 +342,32 @@ class CRUDEntityDefinitionTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
-    public function testGetServiceProvider() {
+    public function testGetSetServiceProvider() {
         $read = $this->definition->getServiceProvider();
         $this->assertNotNull($read);
+
+        $expected = new CRUDServiceProvider();
+        $this->definition->setServiceProvider($expected);
+        $read = $this->definition->getServiceProvider();
+        $this->assertSame($read, $expected);
+    }
+
+    public function testGetSetFilter() {
+        $read = $this->definition->getFilter();
+        $expected = array(
+            'author',
+            'title',
+            'library'
+        );
+        $this->assertSame($read, $expected);
+        $old = $read;
+        $expected = array(
+            'author',
+            'title'
+        );
+        $this->definition->setFilter($expected);
+        $read = $this->definition->getFilter();
+        $this->assertSame($read, $expected);
     }
 
 }

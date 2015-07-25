@@ -1,15 +1,15 @@
 CRUDlex
 ==========
 
-CRUDlex is an easy to use, well documented and tested CRUD generator for Silex.
+CRUDlex is an easy to use, well documented and tested CRUD generator for Silex. It is very useful to generate admin pages for example.
 
 ## Documentation
 
 ### Manual
 
-[Manual](docs/0_manual.md)
+The manual is a reference describing every feature of CRUDlex:
 
-The manual is a reference describing every feature of CRUDlex.
+[Manual](docs/0_manual.md)
 
 ### Sample Project
 
@@ -28,8 +28,15 @@ Checkout the CRUDlex addons project for more features:
 
 The CRUDlex API itself is documented here:
 
+* [0.9.7](http://philiplb.github.io/CRUDlex/docs/api/0.9.7/)
 * [0.9.6](http://philiplb.github.io/CRUDlex/docs/api/0.9.6/)
 * [0.9.5](http://philiplb.github.io/CRUDlex/docs/api/0.9.5/)
+
+### Requirements
+
+* PHP >= 5.3.2
+* For the MySQL driver: MySQL >= 5.1
+* For the file uploads: PECL fileinfo >= 0.1.0
 
 ### Roadmap
 
@@ -46,7 +53,7 @@ implemented on the fly when needed.
 
 ```json
 "require": {
-    "philiplb/crudlex": "0.9.6"
+    "philiplb/crudlex": "0.9.7"
 }
 ```
 
@@ -66,3 +73,7 @@ implemented on the fly when needed.
 
 [![Build Status](https://travis-ci.org/philiplb/CRUDlex.svg?branch=master)](https://travis-ci.org/philiplb/CRUDlex)
 [![Coverage Status](https://coveralls.io/repos/philiplb/CRUDlex/badge.png?branch=master)](https://coveralls.io/r/philiplb/CRUDlex?branch=master)
+
+## Misc
+
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/97dc69bd-12df-430e-ad5b-c9335ff401fa/mini.png)](https://insight.sensiolabs.com/projects/97dc69bd-12df-430e-ad5b-c9335ff401fa)

@@ -72,6 +72,24 @@ class CRUDServiceProvider implements ServiceProviderInterface {
     }
 
     /**
+     * Reads and returns the contents of the given file. If
+     * it goes wrong, it throws an exception.
+     *
+     * @param string $fileName
+     * the file to read
+     *
+     * @return string
+     * the file contents
+     */
+    protected function readYaml($fileName) {
+        if (!file_exists($fileName) || !is_readable($fileName) || !is_file($fileName)) {
+            throw new \Exception('Could not open CRUD file '.$fileName);
+        }
+        $fileContent = file_get_contents($fileName);
+        return Yaml::parse($fileContent);
+    }
+
+    /**
      * Initializes the instance.
      *
      * @param CRUDDataFactoryInterface $dataFactory
@@ -84,17 +102,10 @@ class CRUDServiceProvider implements ServiceProviderInterface {
      * the file processor used for file fields
      */
     public function init(CRUDDataFactoryInterface $dataFactory, $crudFile, $stringsFile, CRUDFileProcessorInterface $fileProcessor) {
-        $stringsContent = @file_get_contents($stringsFile);
-        if ($stringsContent === false) {
-            throw new \Exception('Could not open CRUD strings file');
-        }
-        $this->strings = Yaml::parse($stringsContent);
 
-        $crudsContent = @file_get_contents($crudFile);
-        if ($crudsContent === false) {
-            throw new \Exception('Could not open CRUD definition file');
-        }
-        $cruds = Yaml::parse($crudsContent);
+        $this->strings = $this->readYaml($stringsFile);
+        $cruds = $this->readYaml($crudFile);
+
         $this->datas = array();
         foreach ($cruds as $name => $crud) {
             $label = key_exists('label', $crud) ? $crud['label'] : $name;
@@ -103,20 +114,29 @@ class CRUDServiceProvider implements ServiceProviderInterface {
                 'created_at' => $this->translate('label.created_at'),
                 'updated_at' => $this->translate('label.updated_at')
             );
-            $listFields = key_exists('listFields', $crud) ? $crud['listFields'] : null;
-            $childrenLabelFields = key_exists('childrenLabelFields', $crud) ? $crud['childrenLabelFields'] : array();
-            $deleteCascade = key_exists('deleteCascade', $crud) ? $crud['deleteCascade'] : false;
-            $pageSize = key_exists('pageSize', $crud) ? $crud['pageSize'] : 25;
             $definition = new CRUDEntityDefinition($crud['table'],
                 $crud['fields'],
                 $label,
-                $listFields,
                 $standardFieldLabels,
-                $childrenLabelFields,
-                $deleteCascade,
-                $pageSize,
                 $this);
             $this->datas[$name] = $dataFactory->createData($definition, $fileProcessor);
+
+            if (key_exists('deleteCascade', $crud)) {
+                $this->datas[$name]->getDefinition()->setDeleteCascade($crud['deleteCascade']);
+            }
+            if (key_exists('listFields', $crud)) {
+                $this->datas[$name]->getDefinition()->setListFieldNames($crud['listFields']);
+            }
+            if (key_exists('filter', $crud)) {
+                $this->datas[$name]->getDefinition()->setFilter($crud['filter']);
+            }
+            if (key_exists('childrenLabelFields', $crud)) {
+                $this->datas[$name]->getDefinition()->setChildrenLabelFields($crud['childrenLabelFields']);
+            }
+            if (key_exists('pageSize', $crud)) {
+                $this->datas[$name]->getDefinition()->setPageSize($crud['pageSize']);
+            }
+
         }
 
         foreach($this->datas as $name => $data) {

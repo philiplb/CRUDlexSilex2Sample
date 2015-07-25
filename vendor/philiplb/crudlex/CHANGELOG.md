@@ -1,8 +1,44 @@
 CRUDlex Changelog
 =================
 
-## 0.9.7
+## 0.9.8
 Released: Upcoming
+
+## 0.9.7
+Released: 2015-07-26
+- Added an optional description per field
+- CRUDData::listEntries() can take now operators for the filter parameter
+- Added filters for the list views
+- Big cleanup of the CRUDEntityDefinition constructor
+- Not required number fields not being entered by the user end up the database as NULL instead of as 0
+- null is a valid value when validating an int, float or reference which is not required in an entity
+- Added classes to the create, edit and delete forms so they can be hooked easily with JavaScript
+- Using the DBAL querybuilder in the CRUDMySQLData class instead of constructing the queries via string concatenation; this might solve some unknown security issues and is more readable
+- Fixed all issues revealed by SensioLabsInsight
+- The requirements are now mentioned in the README.md
+- Set the preferred-install in the composer package
+- Moved some features to an own chapter in the documentation
+- Added setters to CRUDEntityDefinition:
+    - setServiceProvider
+    - setUnique
+    - setFilePath
+    - setSetItems
+    - setFloatStep
+    - setFieldLabel
+    - setTable
+    - setLabel
+- Updated dependencies to:
+    - "silex/silex": "~1.3"
+    - "symfony/twig-bridge": "~2.7"
+    - "symfony/yaml": "~2.7"
+    - "phpunit/phpunit": "4.7.6"
+    - "symfony/browser-kit": "~2.7"
+    - "symfony/css-selector": "~2.7"
+    - "apigen/apigen": "4.1.1"
+    - Eonasdan/bootstrap-datetimepicker V4.14.30
+    - Bootstrap 3.3.5
+    - moment.js 2.10.3
+    - jQuery 2.1.4
 
 ## 0.9.6
 Released: 2015-02-20
@@ -19,11 +55,11 @@ Released: 2015-02-20
     - "symfony/twig-bridge": "~2.6"
     - "doctrine/dbal": "~2.5"
     - "symfony/yaml": "~2.6"
-    - "phpunit/phpunit": "~4.4",
+    - "phpunit/phpunit": "~4.5",
     - "satooshi/php-coveralls": "0.7.*@dev",
     - "symfony/browser-kit": "~2.6",
     - "symfony/css-selector": "~2.6",
-    - "apigen/apigen": "4.0.0-RC4"
+    - "apigen/apigen": "4.0.0"
 - Added pagination to the list view
 - Added the ability to hand in default values to the create form
 - Added edit and delete buttons to the children table of the entities show page

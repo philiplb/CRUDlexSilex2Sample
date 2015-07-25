@@ -11,6 +11,7 @@
 
 namespace Silex;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -42,7 +43,7 @@ use Silex\EventListener\StringToResponseListener;
  */
 class Application extends \Pimple implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '1.2.3';
+    const VERSION = '1.3.0';
 
     const EARLY_EVENT = 512;
     const LATE_EVENT  = -512;
@@ -88,6 +89,9 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
 
         $this['dispatcher_class'] = 'Symfony\\Component\\EventDispatcher\\EventDispatcher';
         $this['dispatcher'] = $this->share(function () use ($app) {
+            /**
+             * @var EventDispatcherInterface $dispatcher
+             */
             $dispatcher = new $app['dispatcher_class']();
 
             $urlMatcher = new LazyUrlMatcher(function () use ($app) {
@@ -260,6 +264,19 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
     }
 
     /**
+     * Maps an OPTIONS request to a callable.
+     *
+     * @param string $pattern Matched route pattern
+     * @param mixed  $to      Callback that returns the response when matched
+     *
+     * @return Controller
+     */
+    public function options($pattern, $to = null)
+    {
+        return $this['controllers']->options($pattern, $to);
+    }
+
+    /**
      * Maps a PATCH request to a callable.
      *
      * @param string $pattern Matched route pattern
@@ -288,7 +305,7 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
             return;
         }
 
-        $this['dispatcher'] = $this->share($this->extend('dispatcher', function ($dispatcher, $app) use ($callback, $priority, $eventName) {
+        $this['dispatcher'] = $this->share($this->extend('dispatcher', function (EventDispatcherInterface $dispatcher, $app) use ($callback, $priority, $eventName) {
             $dispatcher->addListener($eventName, $app['callback_resolver']->resolveCallback($callback), $priority);
 
             return $dispatcher;
@@ -401,6 +418,23 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
     }
 
     /**
+     * Registers a view handler.
+     *
+     * View handlers are simple callables which take a controller result and the
+     * request as arguments, whenever a controller returns a value that is not
+     * an instance of Response. When this occurs, all suitable handlers will be
+     * called, until one returns a Response object.
+     *
+     * @param mixed $callback View handler callback
+     * @param int   $priority The higher this value, the earlier an event
+     *                        listener will be triggered in the chain (defaults to 0)
+     */
+    public function view($callback, $priority = 0)
+    {
+        $this->on(KernelEvents::VIEW, new ViewListenerWrapper($this, $callback), $priority);
+    }
+
+    /**
      * Flushes the controller collection.
      *
      * @param string $prefix The route prefix
@@ -494,11 +528,15 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
     public function mount($prefix, $controllers)
     {
         if ($controllers instanceof ControllerProviderInterface) {
-            $controllers = $controllers->connect($this);
-        }
+            $connectedControllers = $controllers->connect($this);
 
-        if (!$controllers instanceof ControllerCollection) {
-            throw new \LogicException('The "mount" method takes either a ControllerCollection or a ControllerProviderInterface instance.');
+            if (!$connectedControllers instanceof ControllerCollection) {
+                throw new \LogicException(sprintf('The method "%s::connect" must return a "ControllerCollection" instance. Got: "%s"', get_class($controllers), is_object($connectedControllers) ? get_class($connectedControllers) : gettype($connectedControllers)));
+            }
+
+            $controllers = $connectedControllers;
+        } elseif (!$controllers instanceof ControllerCollection) {
+            throw new \LogicException('The "mount" method takes either a "ControllerCollection" or a "ControllerProviderInterface" instance.');
         }
 
         $this['controllers']->mount($prefix, $controllers);

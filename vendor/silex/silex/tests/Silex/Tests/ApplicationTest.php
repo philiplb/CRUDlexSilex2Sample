@@ -13,6 +13,7 @@ namespace Silex\Tests;
 
 use Silex\Application;
 use Silex\ControllerCollection;
+use Silex\ControllerProviderInterface;
 use Silex\Route;
 use Silex\Provider\MonologServiceProvider;
 use Symfony\Component\HttpFoundation\Request;
@@ -505,17 +506,33 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('first', 'second', 'third'), array_keys(iterator_to_array($app['routes'])));
     }
 
+    /**
+     * @expectedException        \LogicException
+     * @expectedExceptionMessage The "mount" method takes either a "ControllerCollection" or a "ControllerProviderInterface" instance.
+     */
+    public function testMountNullException()
+    {
+        $app = new Application();
+        $app->mount('/exception', null);
+    }
+
+    /**
+     * @expectedException        \LogicException
+     * @expectedExceptionMessage The method "Silex\Tests\IncorrectControllerCollection::connect" must return a "ControllerCollection" instance. Got: "NULL"
+     */
+    public function testMountWrongConnectReturnValueException()
+    {
+        $app = new Application();
+        $app->mount('/exception', new IncorrectControllerCollection());
+    }
+
     public function testSendFile()
     {
         $app = new Application();
 
-        try {
-            $response = $app->sendFile(__FILE__, 200, array('Content-Type: application/php'));
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\BinaryFileResponse', $response);
-            $this->assertEquals(__FILE__, (string) $response->getFile());
-        } catch (\RuntimeException $e) {
-            $this->assertFalse(class_exists('Symfony\Component\HttpFoundation\BinaryFileResponse'));
-        }
+        $response = $app->sendFile(__FILE__, 200, array('Content-Type: application/php'));
+        $this->assertInstanceOf('Symfony\Component\HttpFoundation\BinaryFileResponse', $response);
+        $this->assertEquals(__FILE__, (string) $response->getFile());
     }
 
     /**
@@ -525,7 +542,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testGetRouteCollectionWithRouteWithoutController()
     {
         $app = new Application();
-        $app['exception_handler']->disable();
+        unset($app['exception_handler']);
         $app->match('/')->bind('homepage');
         $app->handle(Request::create('/'));
     }
@@ -542,6 +559,127 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle(Request::create('/foo'));
         $this->assertEquals(301, $response->getStatusCode());
     }
+
+    public function testBeforeFilterOnMountedControllerGroupIsolatedToGroup()
+    {
+        $app = new Application();
+        $app->match('/', function () { return new Response('ok'); });
+        $mounted = $app['controllers_factory'];
+        $mounted->before(function () { return new Response('not ok'); });
+        $app->mount('/group', $mounted);
+
+        $response = $app->handle(Request::create('/'));
+        $this->assertEquals('ok', $response->getContent());
+    }
+
+    public function testViewListenerWithPrimitive()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return 123; });
+        $app->view(function ($view, Request $request) {
+            return new Response($view);
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('123', $response->getContent());
+    }
+
+    public function testViewListenerWithArrayTypeHint()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return array('ok'); });
+        $app->view(function (array $view) {
+            return new Response($view[0]);
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('ok', $response->getContent());
+    }
+
+    public function testViewListenerWithObjectTypeHint()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return (object) array('name' => 'world'); });
+        $app->view(function (\stdClass $view) {
+            return new Response('Hello '.$view->name);
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('Hello world', $response->getContent());
+    }
+
+    /**
+     * @requires PHP 5.4
+     */
+    public function testViewListenerWithCallableTypeHint()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return function () { return 'world'; }; });
+        $app->view(function (callable $view) {
+            return new Response('Hello '.$view());
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('Hello world', $response->getContent());
+    }
+
+    public function testViewListenersCanBeChained()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return (object) array('name' => 'world'); });
+
+        $app->view(function (\stdClass $view) {
+            return array('msg' => 'Hello '.$view->name);
+        });
+
+        $app->view(function (array $view) {
+            return $view['msg'];
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('Hello world', $response->getContent());
+    }
+
+    public function testViewListenersAreIgnoredIfNotSuitable()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return 'Hello world'; });
+
+        $app->view(function (\stdClass $view) {
+            throw new \Exception('View listener was called');
+        });
+
+        $app->view(function (array $view) {
+            throw new \Exception('View listener was called');
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('Hello world', $response->getContent());
+    }
+
+    public function testViewListenersResponsesAreNotUsedIfNull()
+    {
+        $app = new Application();
+        $app->get('/foo', function () { return 'Hello world'; });
+
+        $app->view(function ($view) {
+            return 'Hello view listener';
+        });
+
+        $app->view(function ($view) {
+            return;
+        });
+
+        $response = $app->handle(Request::create('/foo'));
+
+        $this->assertEquals('Hello view listener', $response->getContent());
+    }
 }
 
 class FooController
@@ -549,5 +687,13 @@ class FooController
     public function barAction(Application $app, $name)
     {
         return 'Hello '.$app->escape($name);
+    }
+}
+
+class IncorrectControllerCollection implements ControllerProviderInterface
+{
+    public function connect(Application $app)
+    {
+        return;
     }
 }

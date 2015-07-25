@@ -9,6 +9,7 @@
 
 {% include '@crud/fieldLabel.twig' with {
     field: field,
-    definition: crudData.getDefinition()
+    definition: crudData.getDefinition(),
+    annotations: annotations
 } only %}
-<input type="text" class="form-control" id="{{ field }}" placeholder="{{ crudData.getDefinition().getFieldLabel(field) }}" value="{{ entity.get(field) }}" name="{{ field }}" />
+<input type="text" class="form-control" id="{{ field }}" placeholder="{{ crudData.getDefinition().getFieldLabel(field) }}" value="{{ value }}" name="{{ fieldNamePrefix ~ field }}" />

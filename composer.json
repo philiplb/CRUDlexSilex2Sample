@@ -1,9 +1,5 @@
 {
     "require": {
-        "silex/silex": "1.2.3",
-        "symfony/twig-bridge": "2.6.4",
-        "doctrine/dbal": "2.5.1",
-        "symfony/yaml": "2.6.4",
-        "philiplb/crudlex": "0.9.6"
+        "philiplb/crudlex": "0.9.7"
     }
 }
