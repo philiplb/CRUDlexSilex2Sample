@@ -74,7 +74,7 @@ Registering
     booted. So, if you want to use it outside of the handling of a request,
     don't forget to call ``boot()`` first::
 
-        $application->boot();
+        $app->boot();
 
 .. caution::
 
@@ -136,10 +136,24 @@ under ``/admin/``::
         ),
     );
 
-The ``pattern`` is a regular expression (it can also be a `RequestMatcher
+The ``pattern`` is a regular expression on the URL path; the ``http`` setting
+tells the security layer to use HTTP basic authentication and the ``users``
+entry defines valid users.
+
+If you want to restrict the firewall by more than the URL pattern (like the
+HTTP method, the client IP, the hostname, or any Request attributes), use an
+instance of a `RequestMatcher
 <http://api.symfony.com/master/Symfony/Component/HttpFoundation/RequestMatcher.html>`_
-instance); the ``http`` setting tells the security layer to use HTTP basic
-authentication and the ``users`` entry defines valid users.
+for the ``pattern`` option::
+
+    use Symfony/Component/HttpFoundation/RequestMatcher;
+
+    $app['security.firewalls'] = array(
+        'admin' => array(
+            'pattern' => new RequestMatcher('^/admin', 'example.com', 'POST'),
+            // ...
+        ),
+    );
 
 Each user is defined with the following information:
 
@@ -300,7 +314,7 @@ pattern::
         'secured' => array(
             'pattern' => '^/admin/',
             'form' => array('login_path' => '/login', 'check_path' => '/admin/login_check'),
-            'logout' => array('logout_path' => '/admin/logout'),
+            'logout' => array('logout_path' => '/admin/logout', 'invalidate_session' => true),
 
             // ...
         ),
@@ -658,5 +672,24 @@ Traits
     $app->get('/', function () {
         // do something but only for admins
     })->secure('ROLE_ADMIN');
+
+.. caution::
+
+    The ``Silex\Route\SecurityTrait`` must be used with a user defined
+    ``Route`` class, not the application.
+
+    .. code-block:: php
+
+        use Silex\Route;
+
+        class MyRoute extends Route
+        {
+            use Route\SecurityTrait;
+        }
+
+    .. code-block:: php
+
+        $app['route_class'] = 'MyRoute';
+
 
 .. _cookbook: http://symfony.com/doc/current/cookbook/security/custom_authentication_provider.html

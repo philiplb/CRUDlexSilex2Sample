@@ -25,7 +25,7 @@ If you want more flexibility, use Composer_ instead:
 Web Server
 ----------
 
-All examples in the documentation relies on a well-configured web server; read
+All examples in the documentation rely on a well-configured web server; read
 the :doc:`webserver documentation<web_servers>` to check yours.
 
 Bootstrap
@@ -43,9 +43,6 @@ definitions, call the ``run`` method on your application::
     // ... definitions
 
     $app->run();
-
-Then, you have to configure your web server (read the
-:doc:`dedicated chapter <web_servers>` for more information).
 
 .. tip::
 
@@ -182,7 +179,7 @@ Other methods
 ~~~~~~~~~~~~~
 
 You can create controllers for most HTTP methods. Just call one of these
-methods on your application: ``get``, ``post``, ``put``, ``delete``::
+methods on your application: ``get``, ``post``, ``put``, ``delete``, ``patch``, ``options``::
 
     $app->put('/blog/{id}', function ($id) {
         // ...
@@ -339,7 +336,8 @@ converter based on Doctrine ObjectManager::
     }
 
 The service will now be registered in the application, and the
-convert method will be used as converter::
+``convert()`` method will be used as converter (using the syntax
+``service_name:method_name``)::
 
     $app['converter.user'] = $app->share(function () {
         return new UserConverter();
@@ -356,8 +354,8 @@ In some cases you may want to only match certain expressions. You can define
 requirements using regular expressions by calling ``assert`` on the
 ``Controller`` object, which is returned by the routing methods.
 
-The following will make sure the ``id`` argument is numeric, since ``\d+``
-matches any amount of digits::
+The following will make sure the ``id`` argument is a positive integer, since
+``\d+`` matches any amount of digits::
 
     $app->get('/blog/{id}', function ($id) {
         // ...
@@ -461,7 +459,7 @@ the defaults for new controllers.
 Error Handlers
 --------------
 
-When an exception is thrown, error handlers allows you to display a custom
+When an exception is thrown, error handlers allow you to display a custom
 error page to the user. They can also be used to do additional things, such as
 logging.
 
@@ -496,7 +494,7 @@ setting a more specific type hint for the Closure argument::
 
     $app->error(function (\LogicException $e, $code) {
         // this handler will only handle \LogicException exceptions
-        // and exceptions that extends \LogicException
+        // and exceptions that extend \LogicException
     });
 
 .. note::
@@ -509,8 +507,8 @@ setting a more specific type hint for the Closure argument::
         return new Response('Error', 404 /* ignored */, array('X-Status-Code' => 200));
 
 If you want to use a separate error handler for logging, make sure you register
-it before the response error handlers, because once a response is returned, the
-following handlers are ignored.
+it with a higher priority than response error handlers, because once a response
+is returned, the following handlers are ignored.
 
 .. note::
 
@@ -546,6 +544,8 @@ early::
         return new Response(...);
     });
 
+You can convert errors to ``Exceptions``, check out the cookbook :doc:`chapter <cookbook/error_handler>` for details.
+
 View Handlers
 -------------
 
@@ -553,7 +553,7 @@ View Handlers allow you to intercept a controller result that is not a
 ``Response`` and transform it before it gets returned to the kernel.
 
 To register a view handler, pass a callable (or string that can be resolved to a
-callable) to the view method. The callable should accept some sort of result
+callable) to the ``view()`` method. The callable should accept some sort of result
 from the controller::
 
     $app->view(function (array $controllerResult) use ($app) {
@@ -591,8 +591,8 @@ as the input for the next.
 Redirects
 ---------
 
-You can redirect to another page by returning a redirect response, which you
-can create by calling the ``redirect`` method::
+You can redirect to another page by returning a ``RedirectResponse`` response,
+which you can create by calling the ``redirect`` method::
 
     $app->get('/', function () use ($app) {
         return $app->redirect('/hello');
@@ -610,7 +610,7 @@ round-trip to the browser (as for a redirect), use an internal sub-request::
     use Symfony\Component\HttpKernel\HttpKernelInterface;
 
     $app->get('/', function () use ($app) {
-        // redirect to /hello
+        // forward to /hello
         $subRequest = Request::create('/hello', 'GET');
 
         return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
@@ -670,9 +670,9 @@ after every chunk::
     $stream = function () {
         $fh = fopen('http://www.example.com/', 'rb');
         while (!feof($fh)) {
-          echo fread($fh, 1024);
-          ob_flush();
-          flush();
+            echo fread($fh, 1024);
+            ob_flush();
+            flush();
         }
         fclose($fh);
     };
@@ -759,17 +759,19 @@ Cross-Site-Scripting attacks.
 
       $app->get('/name', function (Silex\Application $app) {
           $name = $app['request']->get('name');
+
           return "You provided the name {$app->escape($name)}.";
       });
 
   If you use the Twig template engine, you should use its escaping or even
-  auto-escaping mechanisms.
+  auto-escaping mechanisms. Check out the *Providers* :doc:`chapter <providers/twig>` for details.
 
 * **Escaping JSON**: If you want to provide data in JSON format you should
   use the Silex ``json`` function::
 
       $app->get('/name.json', function (Silex\Application $app) {
           $name = $app['request']->get('name');
+
           return $app->json(array('name' => $name));
       });
 

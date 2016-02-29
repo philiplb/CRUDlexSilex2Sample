@@ -51,12 +51,12 @@ class SwiftmailerServiceProvider implements ServiceProviderInterface
             );
 
             $options = $app['swiftmailer.options'] = array_replace(array(
-                'host'       => 'localhost',
-                'port'       => 25,
-                'username'   => '',
-                'password'   => '',
+                'host' => 'localhost',
+                'port' => 25,
+                'username' => '',
+                'password' => '',
                 'encryption' => null,
-                'auth_mode'  => null,
+                'auth_mode' => null,
             ), $app['swiftmailer.options']);
 
             $transport->setHost($options['host']);
@@ -91,7 +91,7 @@ class SwiftmailerServiceProvider implements ServiceProviderInterface
         $app->finish(function () use ($app) {
             // To speed things up (by avoiding Swift Mailer initialization), flush
             // messages only if our mailer has been created (potentially used)
-            if ($app['mailer.initialized']) {
+            if ($app['mailer.initialized'] && $app['swiftmailer.use_spool'] && $app['swiftmailer.spooltransport'] instanceof \Swift_Transport_SpoolTransport) {
                 $app['swiftmailer.spooltransport']->getSpool()->flushQueue($app['swiftmailer.transport']);
             }
         });

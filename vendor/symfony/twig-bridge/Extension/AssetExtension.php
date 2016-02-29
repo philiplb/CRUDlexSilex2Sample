@@ -42,7 +42,7 @@ class AssetExtension extends \Twig_Extension
         return array(
             new \Twig_SimpleFunction('asset', array($this, 'getAssetUrl')),
             new \Twig_SimpleFunction('asset_version', array($this, 'getAssetVersion')),
-            new \Twig_SimpleFunction('assets_version', array($this, 'getAssetsVersion')),
+            new \Twig_SimpleFunction('assets_version', array($this, 'getAssetsVersion'), array('deprecated' => true, 'alternative' => 'asset_version')),
         );
     }
 
@@ -98,19 +98,16 @@ class AssetExtension extends \Twig_Extension
     {
         if ($version) {
             $package = $this->packages->getPackage($packageName);
-            $class = new \ReflectionClass($package);
 
-            while ('Symfony\Component\Asset\Package' !== $class->getName()) {
-                $class = $class->getParentClass();
-            }
-
-            $v = $class->getProperty('versionStrategy');
+            $v = new \ReflectionProperty('Symfony\Component\Asset\Package', 'versionStrategy');
             $v->setAccessible(true);
+
             $currentVersionStrategy = $v->getValue($package);
 
             if (property_exists($currentVersionStrategy, 'format')) {
                 $f = new \ReflectionProperty($currentVersionStrategy, 'format');
                 $f->setAccessible(true);
+
                 $format = $f->getValue($currentVersionStrategy);
 
                 $v->setValue($package, new StaticVersionStrategy($version, $format));

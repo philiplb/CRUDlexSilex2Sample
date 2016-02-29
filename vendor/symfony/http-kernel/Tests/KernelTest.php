@@ -12,6 +12,7 @@
 namespace Symfony\Component\HttpKernel\Tests;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Config\EnvParametersResource;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -19,7 +20,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Tests\Fixtures\KernelForTest;
 use Symfony\Component\HttpKernel\Tests\Fixtures\KernelForOverrideName;
-use Symfony\Component\HttpKernel\Tests\Fixtures\FooBarBundle;
 
 class KernelTest extends \PHPUnit_Framework_TestCase
 {
@@ -245,7 +245,7 @@ modified';
 $heredoc = <<<HD
 
 
-Heredoc should not be   modified
+Heredoc should not be   modified {$a[1+$b]}
 
 
 HD;
@@ -281,7 +281,7 @@ modified';
 $heredoc = <<<HD
 
 
-Heredoc should not be   modified
+Heredoc should not be   modified {$a[1+$b]}
 
 
 HD;
@@ -310,48 +310,6 @@ EOF;
         }
 
         $this->assertEquals($expected, $output);
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testLegacyIsClassInActiveBundleFalse()
-    {
-        $kernel = $this->getKernelMockForIsClassInActiveBundleTest();
-
-        $this->assertFalse($kernel->isClassInActiveBundle('Not\In\Active\Bundle'));
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testLegacyIsClassInActiveBundleFalseNoNamespace()
-    {
-        $kernel = $this->getKernelMockForIsClassInActiveBundleTest();
-
-        $this->assertFalse($kernel->isClassInActiveBundle('NotNamespacedClass'));
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testLegacyIsClassInActiveBundleTrue()
-    {
-        $kernel = $this->getKernelMockForIsClassInActiveBundleTest();
-
-        $this->assertTrue($kernel->isClassInActiveBundle(__NAMESPACE__.'\Fixtures\FooBarBundle\SomeClass'));
-    }
-
-    protected function getKernelMockForIsClassInActiveBundleTest()
-    {
-        $bundle = new FooBarBundle();
-
-        $kernel = $this->getKernel(array('getBundles'));
-        $kernel->expects($this->once())
-            ->method('getBundles')
-            ->will($this->returnValue(array($bundle)));
-
-        return $kernel;
     }
 
     public function testGetRootDir()
@@ -765,7 +723,7 @@ EOF;
     }
 
     /**
-     * Returns a mock for the BundleInterface
+     * Returns a mock for the BundleInterface.
      *
      * @return BundleInterface
      */

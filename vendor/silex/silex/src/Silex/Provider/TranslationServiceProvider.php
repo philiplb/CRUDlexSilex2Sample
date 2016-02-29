@@ -40,6 +40,27 @@ class TranslationServiceProvider implements ServiceProviderInterface
             $translator->addLoader('array', new ArrayLoader());
             $translator->addLoader('xliff', new XliffFileLoader());
 
+            if (isset($app['validator'])) {
+                $r = new \ReflectionClass('Symfony\Component\Validator\Validation');
+                $file = dirname($r->getFilename()).'/Resources/translations/validators.'.$app['locale'].'.xlf';
+                if (file_exists($file)) {
+                    $translator->addResource('xliff', $file, $app['locale'], 'validators');
+                }
+            }
+
+            if (isset($app['form.factory'])) {
+                $r = new \ReflectionClass('Symfony\Component\Form\Form');
+                $file = dirname($r->getFilename()).'/Resources/translations/validators.'.$app['locale'].'.xlf';
+                if (file_exists($file)) {
+                    $translator->addResource('xliff', $file, $app['locale'], 'validators');
+                }
+            }
+
+            // Register default resources
+            foreach ($app['translator.resources'] as $resource) {
+                $translator->addResource($resource[0], $resource[1], $resource[2], $resource[3]);
+            }
+
             foreach ($app['translator.domains'] as $domain => $data) {
                 foreach ($data as $locale => $messages) {
                     $translator->addResource('array', $messages, $locale, $domain);
@@ -48,6 +69,10 @@ class TranslationServiceProvider implements ServiceProviderInterface
 
             return $translator;
         });
+
+        $app['translator.resources'] = function ($app) {
+            return array();
+        };
 
         $app['translator.message_selector'] = $app->share(function () {
             return new MessageSelector();

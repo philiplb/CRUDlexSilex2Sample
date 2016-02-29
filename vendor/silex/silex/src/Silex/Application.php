@@ -14,6 +14,7 @@ namespace Silex;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -43,10 +44,10 @@ use Silex\EventListener\StringToResponseListener;
  */
 class Application extends \Pimple implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '1.3.0';
+    const VERSION = '1.3.5';
 
     const EARLY_EVENT = 512;
-    const LATE_EVENT  = -512;
+    const LATE_EVENT = -512;
 
     protected $providers = array();
     protected $booted = false;
@@ -89,15 +90,19 @@ class Application extends \Pimple implements HttpKernelInterface, TerminableInte
 
         $this['dispatcher_class'] = 'Symfony\\Component\\EventDispatcher\\EventDispatcher';
         $this['dispatcher'] = $this->share(function () use ($app) {
-            /**
-             * @var EventDispatcherInterface $dispatcher
+            /*
+             * @var EventDispatcherInterface
              */
             $dispatcher = new $app['dispatcher_class']();
 
             $urlMatcher = new LazyUrlMatcher(function () use ($app) {
                 return $app['url_matcher'];
             });
-            $dispatcher->addSubscriber(new RouterListener($urlMatcher, $app['request_context'], $app['logger'], $app['request_stack']));
+            if (Kernel::VERSION_ID >= 20800) {
+                $dispatcher->addSubscriber(new RouterListener($urlMatcher, $app['request_stack'], $app['request_context'], $app['logger']));
+            } else {
+                $dispatcher->addSubscriber(new RouterListener($urlMatcher, $app['request_context'], $app['logger'], $app['request_stack']));
+            }
             $dispatcher->addSubscriber(new LocaleListener($app, $urlMatcher, $app['request_stack']));
             if (isset($app['exception_handler'])) {
                 $dispatcher->addSubscriber($app['exception_handler']);
