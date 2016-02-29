@@ -29,8 +29,8 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 ));
 $app->register(new Silex\Provider\SessionServiceProvider());
 
-$dataFactory = new CRUDlex\CRUDMySQLDataFactory($app['db']);
-$app->register(new CRUDlex\CRUDServiceProvider(), array(
+$dataFactory = new CRUDlex\MySQLDataFactory($app['db']);
+$app->register(new CRUDlex\ServiceProvider(), array(
     'crud.file' => __DIR__ . '/../crud.yml',
     //'crud.stringsfile' => __DIR__ . '/../strings.yml',
     'crud.datafactory' => $dataFactory
@@ -39,7 +39,7 @@ $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new Silex\Provider\TwigServiceProvider());
 
 //$app['crud.layout'] = 'layout.twig';
-$app->mount('/crud', new CRUDlex\CRUDControllerProvider());
+$app->mount('/crud', new CRUDlex\ControllerProvider());
 
 $app->match('/', function() use ($app) {
     return $app->redirect($app['url_generator']->generate('crudList', array('entity' => 'library')));

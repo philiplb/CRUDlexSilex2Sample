@@ -1,5 +1,5 @@
 {
     "require": {
-        "philiplb/crudlex": "0.9.9"
+        "philiplb/crudlex": "0.9.x-dev"
     }
 }
