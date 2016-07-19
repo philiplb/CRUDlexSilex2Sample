@@ -93,21 +93,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../manual/layouts.html">Overriding Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/templates.html">Overriding Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/addons.html">Addons</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="AbstractData.html">CRUDlex\AbstractData</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ControllerProvider.html">CRUDlex\ControllerProvider</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data.html">CRUDlex\Data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="DataFactoryInterface.html">CRUDlex\DataFactoryInterface</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="">CRUDlex\MySQLDataFactory</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Entity.html">CRUDlex\Entity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="EntityDefinition.html">CRUDlex\EntityDefinition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EntityDefinitionFactoryInterface.html">CRUDlex\EntityDefinitionFactoryInterface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="EntityValidator.html">CRUDlex\EntityValidator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FileProcessorInterface.html">CRUDlex\FileProcessorInterface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ReferenceValidator.html">CRUDlex\ReferenceValidator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ServiceProvider.html">CRUDlex\ServiceProvider</a></li>
 <li class="toctree-l1"><a class="reference internal" href="StreamedFileResponse.html">CRUDlex\StreamedFileResponse</a></li>
+<li class="toctree-l1"><a class="reference internal" href="UniqueValidator.html">CRUDlex\UniqueValidator</a></li>
 </ul>
 
             
@@ -130,7 +134,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -161,8 +165,8 @@
 <em class="property">class </em><code class="descname">MySQLDataFactory</code><a class="headerlink" href="#MySQLDataFactory" title="Permalink to this definition">¶</a></dt>
 <dd><p>A factory implementation for <a class="reference external" href="mailto:{&#37;&#52;&#48;see">{<span>&#64;</span>see</a> MySQLData} instances.</p>
 <dl class="attr">
-<dt id="MySQLDataFactory::$db">
-<em class="property">property </em><code class="descname">db</code><a class="headerlink" href="#MySQLDataFactory::$db" title="Permalink to this definition">¶</a></dt>
+<dt id="MySQLDataFactory::$database">
+<em class="property">property </em><code class="descname">database</code><a class="headerlink" href="#MySQLDataFactory::$database" title="Permalink to this definition">¶</a></dt>
 <dd><p>protected</p>
 <p>Holds the Doctrine DBAL instance.</p>
 </dd></dl>
@@ -176,14 +180,14 @@
 
 <dl class="method">
 <dt id="MySQLDataFactory::__construct">
-<code class="descname">__construct</code><span class="sig-paren">(</span><em>$db</em>, <em>$useUUIDs = false</em><span class="sig-paren">)</span><a class="headerlink" href="#MySQLDataFactory::__construct" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__construct</code><span class="sig-paren">(</span><em>$database</em>, <em>$useUUIDs = false</em><span class="sig-paren">)</span><a class="headerlink" href="#MySQLDataFactory::__construct" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>$db</strong> &#8211; </li>
+<li><strong>$database</strong> &#8211; </li>
 <li><strong>$useUUIDs</strong> &#8211; </li>
 </ul>
 </td>

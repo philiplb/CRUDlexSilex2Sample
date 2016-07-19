@@ -2,10 +2,33 @@ CRUDlex Changelog
 =================
 
 ## 0.9.10
-Released: Upcoming
+Released: 2016-06-19
 - Attention: Removed the prefix "CRUD" from all classes as they live in their own namespace anyway
 - Attention: The data types "int" and "bool" got renamed to "integer" and "boolean"
+- Attention, API changes:
+    - CRUDlex\Data -> CRUDlex\AbstractData
+    - EntityDefinition::getInitialSortAscending() -> EntityDefinition::isInitialSortAscending()
+    - ServiceProvider::getMangeI18N() -> ServiceProvider::isManagingI18n()
+    - Show-Page: The id "crudEntityShowTable" is now a class
+    - CRUDlex\EntityValidator changed its return structure to the one of Valdi:
+      http://philiplb.github.io/Valdi/docs/html/0.9.0/manual/gettingstarted.html#validation
+    - The date and datetime fields changed moved their classes to the input fields and changed their names to "crudDate" and "crudDateTime"
+- Attention: Fixed a security issue in the static file provider
+- Changed the entity validation to https://github.com/philiplb/Valdi
+- Changed the date and date time pickers to https://github.com/chmln/flatpickr
 - Replaced the markdown manual and the APIGen documentation with an unified Sphinx version
+- Added RTL support in the i18n system
+- Added file handling events
+- Made a base path configurable for the SimpleFilesystemFileProcessor
+- The ServiceProvider uses now static instantiation instead of calling his own class making it easier to override
+- Added some more IDs and classes in the HTML to be more tweakable
+- Fixed a crash if the table name of an entity is a MySQL keyword
+- Fixed a crash if the field name of an entity is a MySQL keyword
+- Fixed a crash if the sort field name of an entity is a MySQL keyword
+- Fixed a crash if non required reference fields where not given
+- Fixed a crash if referenced entities got soft deleted by a third party
+- Fixed the sort order being properly handled in the pagination buttons now
+- Fixed and refactored a lot of things revealed by static code analysis
 
 ## 0.9.9
 Released: 2016-02-11

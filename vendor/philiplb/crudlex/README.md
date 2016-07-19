@@ -7,18 +7,7 @@ CRUDlex is an easy to use, well documented and tested CRUD generator for Silex. 
 
 ## Documentation
 
-For the upcoming version 0.9.10, the manual and API docs got merged to an unified
-documentation:
-
-[Documentation](http://philiplb.github.io/CRUDlex/docs/html/0.9.10/)
-
-The manual is a reference describing every feature of CRUDlex:
-
-[Manual 0.9.9](https://github.com/philiplb/CRUDlex/blob/0.9.9/docs/0_manual.md)
-
-The CRUDlex API itself is documented here:
-
-[API 0.9.9](http://philiplb.github.io/CRUDlex/docs/html/api/0.9.9/)
+[Documentation 0.9.10](http://philiplb.github.io/CRUDlex/docs/html/0.9.10/)
 
 How to build the documentation:
 
@@ -37,7 +26,7 @@ make html
 
 ```json
 "require": {
-    "philiplb/crudlex": "0.9.9"
+    "philiplb/crudlex": "0.9.10"
 }
 ```
 
@@ -58,9 +47,12 @@ and books:
 
 ### Addons
 
-Checkout the CRUDlex addons project for more features:
+There are several surrounding projects around CRUDlex:
 
-[CRUDlex Addons](https://github.com/philiplb/CRUDlexAddons)
+* [CRUDlexAmazonS3FileProcessor](https://github.com/philiplb/CRUDlexAmazonS3FileProcessor):
+  Handling the file uploads via Amazon S3
+* [CRUDlexUser](https://github.com/philiplb/CRUDlexUser):
+  A library offering an user provider for symfony/security
 
 ### Roadmap
 
@@ -88,7 +80,6 @@ The manual is a reference describing every feature of CRUDlex:
 * [0.9.5](https://github.com/philiplb/CRUDlex/blob/0.9.5/docs/0_manual.md)
 * [0.9.4](https://github.com/philiplb/CRUDlex/blob/0.9.4/docs/0_manual.md)
 * [0.9.3](https://github.com/philiplb/CRUDlex/blob/0.9.3/docs/0_manual.md)
-* [Latest Unstable](docs/0_manual.md)
 
 ### API Documentation
 

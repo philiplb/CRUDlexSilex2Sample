@@ -14,6 +14,7 @@ namespace CRUDlexTests;
 use CRUDlex\ServiceProvider;
 use CRUDlex\MySQLDataFactory;
 use CRUDlexTestEnv\NullFileProcessor;
+use CRUDlexTestEnv\TestEntityDefinitionFactory;
 use Silex\Application;
 use Silex\Provider\DoctrineServiceProvider;
 
@@ -66,6 +67,12 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase {
             // Wanted.
         }
 
+    }
+
+    public function testInitWithEmptyFile() {
+        $app = new Application();
+        $crudServiceProvider = new ServiceProvider();
+        $crudServiceProvider->init($this->dataFactory, __DIR__.'/../emptyCrud.yml', new NullFileProcessor(), true, $app);
     }
 
     public function testGetEntities() {
@@ -207,14 +214,14 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($read, $expected);
     }
 
-    public function testGetManageI18n() {
+    public function testIsManagingI18n() {
         $crudServiceProvider = new ServiceProvider();
         $app = new Application();
         $crudServiceProvider->init($this->dataFactory, $this->crudFile, new NullFileProcessor(), true, $app);
-        $read = $crudServiceProvider->getManageI18n();
+        $read = $crudServiceProvider->isManagingI18n();
         $this->assertTrue($read);
         $crudServiceProvider->init($this->dataFactory, $this->crudFile, new NullFileProcessor(), false, $app);
-        $read = $crudServiceProvider->getManageI18n();
+        $read = $crudServiceProvider->isManagingI18n();
         $this->assertFalse($read);
     }
 
@@ -261,13 +268,22 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase {
         $data = $crudServiceProvider->getData('library');
         $read = $data->getDefinition()->getInitialSortField();
         $expected = 'name';
-        $read = $data->getDefinition()->getInitialSortAscending();
+        $read = $data->getDefinition()->isInitialSortAscending();
         $this->assertFalse($read);
         $data = $crudServiceProvider->getData('book');
         $read = $data->getDefinition()->getInitialSortField();
         $expected = 'id';
-        $read = $data->getDefinition()->getInitialSortAscending();
+        $read = $data->getDefinition()->isInitialSortAscending();
         $this->assertTrue($read);
+    }
+
+    public function testCustomEntityDefinitionFactory() {
+        $crudServiceProvider = new ServiceProvider();
+        $app = new Application();
+        $testEntityDefinitionFactory = new TestEntityDefinitionFactory();
+        $app['crud.entitydefinitionfactory'] = $testEntityDefinitionFactory;
+        $crudServiceProvider->init($this->dataFactory, $this->crudFile, new NullFileProcessor(), true, $app);
+        $this->assertTrue($testEntityDefinitionFactory->getCreateHasBeenCalled());
     }
 
 }

@@ -1,6 +1,6 @@
 {
     "require": {
-        "philiplb/crudlex": "0.9.x-dev"
+        "philiplb/crudlex": "0.9.10"
     },
     "extra": {
         "branch-alias": {

@@ -248,6 +248,20 @@ CRUDDataFactoryInterface:
 
     $dataFactory = new CRUDlex\MySQLDataFactory($app['db'], true);
 
+---------------------------------------------------
+Using an own Implementation of the EntityDefinition
+---------------------------------------------------
+
+There might be the case where you want to use an own implementation derived from the EntityDefinition. In this case,
+you can hand in an own implementation of the EntityDefinitionFactory like this:
+
+.. code-block:: php
+
+    $entityDefinitionFactory = new MyOwnEntityDefinitionFactory();
+    $app->register(new CRUDlex\ServiceProvider(), array(
+        'crud.entitydefinitionfactory' => $entityDefinitionFactory
+    ));
+
 ------------------------------------------
 Prefilled Form Fields on the Creation Page
 ------------------------------------------
@@ -255,3 +269,16 @@ Prefilled Form Fields on the Creation Page
 You can set some initial values when you link the creation page from somewhere
 else by handing in the appropriate GET parameter. Example for the author of a
 book: .../book/create?author=MyAuthor
+
+-----------------------------
+Combine with the Web Profiler
+-----------------------------
+
+If you want to use the package "silex/web-profiler", you have to register the
+TranslationServiceProvider on your own first:
+
+.. code-block:: php
+
+    $app->register(new \Silex\Provider\TranslationServiceProvider(), array(
+        'locale_fallbacks' => array('en'),
+    ));

@@ -98,7 +98,7 @@ class EntityDefinition {
     /**
      * Gets the field names exluding the given ones.
      *
-     * @param array $exclude
+     * @param string[] $exclude
      * the field names to exclude
      *
      * @return array
@@ -106,7 +106,7 @@ class EntityDefinition {
      */
     protected function getFilteredFieldNames(array $exclude) {
         $fieldNames = $this->getFieldNames();
-        $result = array();
+        $result     = array();
         foreach ($fieldNames as $fieldName) {
             if (!in_array($fieldName, $exclude)) {
                 $result[] = $fieldName;
@@ -211,21 +211,21 @@ class EntityDefinition {
      * The current service provider
      */
     public function __construct($table, array $fields, $label, $localeLabels, array $standardFieldLabels, ServiceProvider $serviceProvider) {
-        $this->table = $table;
-        $this->fields = $fields;
-        $this->label = $label;
-        $this->localeLabels = $localeLabels;
+        $this->table               = $table;
+        $this->fields              = $fields;
+        $this->label               = $label;
+        $this->localeLabels        = $localeLabels;
         $this->standardFieldLabels = $standardFieldLabels;
-        $this->serviceProvider = $serviceProvider;
+        $this->serviceProvider     = $serviceProvider;
 
-        $this->children = array();
-        $this->listFields = array();
-        $this->childrenLabelFields = array();
-        $this->filter = array();
-        $this->deleteCascade = false;
-        $this->pageSize = 25;
-        $this->locale = null;
-        $this->initialSortField = 'created_at';
+        $this->children             = array();
+        $this->listFields           = array();
+        $this->childrenLabelFields  = array();
+        $this->filter               = array();
+        $this->deleteCascade        = false;
+        $this->pageSize             = 25;
+        $this->locale               = null;
+        $this->initialSortField     = 'created_at';
         $this->initialSortAscending = true;
     }
 
@@ -233,7 +233,7 @@ class EntityDefinition {
      * Gets all field names, including the implicit ones like "id" or
      * "created_at".
      *
-     * @return array
+     * @return string[]
      * the field names
      */
     public function getFieldNames() {
@@ -381,7 +381,7 @@ class EntityDefinition {
      */
     public function getPublicFieldNames() {
         $exclude = array('version', 'deleted_at');
-        $result = $this->getFilteredFieldNames($exclude);
+        $result  = $this->getFilteredFieldNames($exclude);
         return $result;
     }
 
@@ -400,7 +400,7 @@ class EntityDefinition {
     /**
      * Gets the read only field names like the id or the created_at.
      *
-     * @return array
+     * @return string[]
      * the read only field names
      */
     public function getReadOnlyFields() {
@@ -417,15 +417,14 @@ class EntityDefinition {
      * the type or null on invalid field name
      */
     public function getType($fieldName) {
-        switch ($fieldName) {
-            case 'id':
-                return 'string';
-            case 'created_at':
-            case 'updated_at':
-            case 'deleted_at':
-                return 'datetime';
-            case 'version':
-                return 'integer';
+        if ($fieldName === 'id') {
+            return 'string';
+        }
+        if ($fieldName === 'version') {
+            return 'integer';
+        }
+        if (in_array($fieldName, array('created_at', 'updated_at', 'deleted_at'))) {
+            return 'datetime';
         }
         return $this->getFieldValue($fieldName, 'type');
     }
@@ -814,7 +813,7 @@ class EntityDefinition {
      * @return boolean
      * the initial sort order, true if ascending
      */
-    public function getInitialSortAscending() {
+    public function isInitialSortAscending() {
         return $this->initialSortAscending;
     }
 }

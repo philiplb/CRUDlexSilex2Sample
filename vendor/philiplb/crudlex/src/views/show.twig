@@ -15,14 +15,14 @@
 
     <a id="crudBtnList" href="{{ app.url_generator.generate('crudList', {'entity': crudEntity}) }}" type="button" class="btn btn-default btn-success btn-crudlex">{{ 'crudlex.button.list'|trans }}</a>
     <a id="crudBtnNew" href="{{ app.url_generator.generate('crudCreate', {'entity': crudEntity}) }}" class="btn btn-success btn-crudlex">{{ 'crudlex.button.new'|trans }}</a>
-    <table class="table table-striped">
+    <table class="table table-striped crudEntityShowTable" id="crudEntity{{ crudEntity }}">
         <tr>
             <th>{{ 'crudlex.show.field'|trans }}</th>
             <th>{{ 'crudlex.show.value'|trans }}</th>
         </tr>
 
         {% for field in fields %}
-            <tr>
+            <tr id="crudRow{{ field }}">
                 <td>
                     {{ definition.getFieldLabel(field) }}
                     {% if definition.getDescription(field) %}
@@ -51,9 +51,9 @@
 
     </table>
 
-    {% for child in children %}
+    {% for i, child in children %}
         <h2>{{ child[0] }}</h2>
-        <table class="table table-striped">
+        <table class="table table-striped crudEntityChildListTable" id="crudChild{{ i }}">
             <tr>
                 <th>{{ 'crudlex.show.childName'|trans }}</th>
                 <th>{{ 'crudlex.show.childAction'|trans }}</th>

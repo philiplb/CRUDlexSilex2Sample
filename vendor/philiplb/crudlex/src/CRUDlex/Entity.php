@@ -16,7 +16,7 @@ use CRUDlex\EntityDefinition;
 
 /**
  * Represents a single set of data in field value pairs like the row in a
- * database. Depends of course on the {@see Data} implementation being used.
+ * database. Depends of course on the {@see AbstractData} implementation being used.
  * With this objects, the data is passed arround and validated.
  */
 class Entity {
@@ -38,13 +38,19 @@ class Entity {
      * @param mixed $value
      * the value to convert
      * @param string $type
-     * the type to convert to like 'int' or 'float'
+     * the type to convert to like 'integer' or 'float'
      *
      * @return mixed
      * the converted value
      */
     protected function toType($value, $type) {
-        settype($value, $type);
+        if (in_array($type, array('integer', 'float')) && $value !== '' && $value !== null) {
+            settype($value, $type == 'integer' ? 'int' : 'float');
+        } else if ($type == 'boolean') {
+            $value = $value && $value !== '0';
+        } else if ($type == 'reference') {
+            $value = $value !== '' ? $value : null;
+        }
         return $value;
     }
 
@@ -56,7 +62,7 @@ class Entity {
      */
     public function __construct(EntityDefinition $definition) {
         $this->definition = $definition;
-        $this->entity = array();
+        $this->entity     = array();
     }
 
     /**
@@ -109,13 +115,8 @@ class Entity {
             return null;
         }
 
-        $value = $this->entity[$field];
-        $type = $this->definition->getType($field);
-        if ($type == 'integer' || $type == 'float') {
-            $value = $value !== '' && $value !== null ? $this->toType($value, $type) : null;
-        } else if ($type == 'boolean') {
-            $value = $value && $value !== '0';
-        }
+        $type  = $this->definition->getType($field);
+        $value = $this->toType($this->entity[$field], $type);
         return $value;
     }
 

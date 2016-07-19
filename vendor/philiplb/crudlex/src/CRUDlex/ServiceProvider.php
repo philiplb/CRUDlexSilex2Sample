@@ -11,26 +11,24 @@
 
 namespace CRUDlex;
 
-use Silex\Application;
-use Silex\ServiceProviderInterface;
-use Symfony\Component\Yaml\Yaml;
-use Symfony\Component\Translation\Loader\YamlFileLoader;
-
-use CRUDlex\EntityDefinition;
 use CRUDlex\DataFactoryInterface;
-use CRUDlex\Entity;
+use CRUDlex\EntityDefinition;
 use CRUDlex\FileProcessorInterface;
 use CRUDlex\SimpleFilesystemFileProcessor;
+use Silex\Application;
+use Silex\ServiceProviderInterface;
+use Symfony\Component\Translation\Loader\YamlFileLoader;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * The ServiceProvider setups and initializes the whole CRUD system.
- * After adding it to your Silex-setup, it offers access to {@see Data}
+ * After adding it to your Silex-setup, it offers access to {@see AbstractData}
  * instances, one for each defined entity off the CRUD YAML file.
  */
 class ServiceProvider implements ServiceProviderInterface {
 
     /**
-     * Holds the {@see Data} instances.
+     * Holds the {@see AbstractData} instances.
      */
     protected $datas;
 
@@ -76,25 +74,26 @@ class ServiceProvider implements ServiceProviderInterface {
     }
 
     /**
-     * Reads and returns the contents of the given file. If
+     * Reads and returns the contents of the given Yaml file. If
      * it goes wrong, it throws an exception.
      *
      * @param string $fileName
      * the file to read
      *
-     * @return string
+     * @return array
      * the file contents
      */
     protected function readYaml($fileName) {
-        if (!file_exists($fileName) || !is_readable($fileName) || !is_file($fileName)) {
+        try {
+            $fileContent = file_get_contents($fileName);
+            $parsedYaml  = Yaml::parse($fileContent);
+            if (!is_array($parsedYaml)) {
+                $parsedYaml = array();
+            }
+            return $parsedYaml;
+        } catch (\Exception $e) {
             throw new \Exception('Could not open CRUD file '.$fileName);
         }
-        $fileContent = file_get_contents($fileName);
-        $parsedYaml = Yaml::parse($fileContent);
-        if (!is_array($parsedYaml)) {
-            $parsedYaml = array();
-        }
-        return $parsedYaml;
     }
 
     /**
@@ -136,7 +135,7 @@ class ServiceProvider implements ServiceProviderInterface {
     protected function initLocales(Application $app) {
         $app['translator']->addLoader('yaml', new YamlFileLoader());
         $localeDir = __DIR__.'/../locales';
-        $locales = $this->getLocales();
+        $locales   = $this->getLocales();
         foreach ($locales as $locale) {
             $app['translator']->addResource('yaml', $localeDir.'/'.$locale.'.yml', $locale);
         }
@@ -206,10 +205,48 @@ class ServiceProvider implements ServiceProviderInterface {
     }
 
     /**
+     * Creates and setups an EntityDefinition instance.
+     *
+     * @param Application $app
+     * the application container
+     * @param array $locales
+     * the available locales
+     * @param array $crud
+     * the parsed YAML of a CRUD entity
+     * @param string $name
+     * the name of the entity
+     *
+     * @return EntityDefinition
+     * the EntityDefinition good to go
+     */
+    protected function createDefinition(Application $app, array $locales, array $crud, $name) {
+        $label               = array_key_exists('label', $crud) ? $crud['label'] : $name;
+        $localeLabels        = $this->getLocaleLabels($locales, $crud);
+        $standardFieldLabels = array(
+            'id' => $app['translator']->trans('crudlex.label.id'),
+            'created_at' => $app['translator']->trans('crudlex.label.created_at'),
+            'updated_at' => $app['translator']->trans('crudlex.label.updated_at')
+        );
+
+        $entityDefinitionFactory = $app->offsetExists('crud.entitydefinitionfactory') ? $app['crud.entitydefinitionfactory'] : new EntityDefinitionFactory();
+
+        $definition = $entityDefinitionFactory->createEntityDefinition(
+            $crud['table'],
+            $crud['fields'],
+            $label,
+            $localeLabels,
+            $standardFieldLabels,
+            $this
+        );
+        $this->configureDefinition($definition, $crud);
+        return $definition;
+    }
+
+    /**
      * Initializes the instance.
      *
      * @param DataFactoryInterface $dataFactory
-     * the factory to create the concrete Data instances
+     * the factory to create the concrete AbstractData instances
      * @param string $crudFile
      * the CRUD YAML file to parse
      * @param FileProcessorInterface $fileProcessor
@@ -223,30 +260,14 @@ class ServiceProvider implements ServiceProviderInterface {
 
         $this->initMissingServiceProviders($app);
         $this->manageI18n = $manageI18n;
-        $locales = $this->initLocales($app);
-        $parsedYaml = $this->readYaml($crudFile);
-        $this->datas = array();
+        $locales          = $this->initLocales($app);
+        $parsedYaml       = $this->readYaml($crudFile);
+        $this->datas      = array();
         foreach ($parsedYaml as $name => $crud) {
             if (!is_array($crud) || !isset($crud['fields'])) {
                 continue;
             }
-
-            $label = array_key_exists('label', $crud) ? $crud['label'] : $name;
-            $localeLabels = $this->getLocaleLabels($locales, $crud);
-            $standardFieldLabels = array(
-                'id' => $app['translator']->trans('crudlex.label.id'),
-                'created_at' => $app['translator']->trans('crudlex.label.created_at'),
-                'updated_at' => $app['translator']->trans('crudlex.label.updated_at')
-            );
-            $definition = new EntityDefinition(
-                $crud['table'],
-                $crud['fields'],
-                $label,
-                $localeLabels,
-                $standardFieldLabels,
-                $this
-            );
-            $this->configureDefinition($definition, $crud);
+            $definition         = $this->createDefinition($app, $locales, $crud, $name);
             $this->datas[$name] = $dataFactory->createData($definition, $fileProcessor);
         }
 
@@ -263,9 +284,9 @@ class ServiceProvider implements ServiceProviderInterface {
      */
     public function register(Application $app) {
         $app['crud'] = $app->share(function() use ($app) {
-            $result = new ServiceProvider();
+            $result        = new static();
             $fileProcessor = $app->offsetExists('crud.fileprocessor') ? $app['crud.fileprocessor'] : new SimpleFilesystemFileProcessor();
-            $manageI18n = $app->offsetExists('crud.manageI18n') ? $app['crud.manageI18n'] : true;
+            $manageI18n    = $app->offsetExists('crud.manageI18n') ? $app['crud.manageI18n'] : true;
             $result->init($app['crud.datafactory'], $app['crud.file'], $fileProcessor, $manageI18n, $app);
             return $result;
         });
@@ -281,13 +302,13 @@ class ServiceProvider implements ServiceProviderInterface {
     }
 
     /**
-     * Getter for the {@see Data} instances.
+     * Getter for the {@see AbstractData} instances.
      *
      * @param string $name
      * the entity name of the desired Data instance
      *
-     * @return Data
-     * the Data instance or null on invalid name
+     * @return AbstractData
+     * the AbstractData instance or null on invalid name
      */
     public function getData($name) {
         if (!array_key_exists($name, $this->datas)) {
@@ -299,7 +320,7 @@ class ServiceProvider implements ServiceProviderInterface {
     /**
      * Getter for all available entity names.
      *
-     * @return array
+     * @return string[]
      * a list of all available entity names
      */
     public function getEntities() {
@@ -376,7 +397,7 @@ class ServiceProvider implements ServiceProviderInterface {
      * the best fitting template
      */
     public function getTemplate(Application $app, $section, $action, $entity) {
-        $crudSection = 'crud.'.$section;
+        $crudSection       = 'crud.'.$section;
         $crudSectionAction = $crudSection.'.'.$action;
 
         $offsets = array(
@@ -400,7 +421,7 @@ class ServiceProvider implements ServiceProviderInterface {
      * @return boolean
      * true if CRUDlex manages the i18n system
      */
-    public function getManageI18n() {
+    public function isManagingI18n() {
         return $this->manageI18n;
     }
 
@@ -423,16 +444,16 @@ class ServiceProvider implements ServiceProviderInterface {
      * the available locales
      */
     public function getLocales() {
-        $localeDir = __DIR__.'/../locales';
+        $localeDir     = __DIR__.'/../locales';
         $languageFiles = scandir($localeDir);
-        $locales = array();
+        $locales       = array();
         foreach ($languageFiles as $languageFile) {
-            if ($languageFile == '.' || $languageFile == '..') {
+            if (in_array($languageFile, array('.', '..'))) {
                 continue;
             }
             $extensionPos = strpos($languageFile, '.yml');
             if ($extensionPos !== false) {
-                $locale = substr($languageFile, 0, $extensionPos);
+                $locale    = substr($languageFile, 0, $extensionPos);
                 $locales[] = $locale;
             }
         }
@@ -459,7 +480,7 @@ class ServiceProvider implements ServiceProviderInterface {
      * @param float $float
      * the float to format
      *
-     * @return string
+     * @return double|string
      * the formated float
      */
     public function formatFloat($float) {

@@ -13,18 +13,18 @@ namespace CRUDlex;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use CRUDlex\Entity;
-use CRUDlex\Data;
+use CRUDlex\AbstractData;
 use CRUDlex\FileProcessorInterface;
 
 /**
  * MySQL Data implementation using a given Doctrine DBAL instance.
  */
-class MySQLData extends Data {
+class MySQLData extends AbstractData {
 
     /**
      * Holds the Doctrine DBAL instance.
      */
-    protected $db;
+    protected $database;
 
     /**
      * Flag whether to use UUIDs as primary key.
@@ -39,23 +39,19 @@ class MySQLData extends Data {
      * the entity with its fields and values
      * @param QueryBuilder $queryBuilder
      * the upcoming query
-     * @param boolean $setValue
-     * whether to use QueryBuilder::setValue (true) or QueryBuilder::set (false)
+     * @param string $setMethod
+     * what method to use on the QueryBuilder: 'setValue' or 'set'
      */
-    protected function setValuesAndParameters(Entity $entity, QueryBuilder $queryBuilder, $setValue) {
+    protected function setValuesAndParameters(Entity $entity, QueryBuilder $queryBuilder, $setMethod) {
         $formFields = $this->definition->getEditableFieldNames();
-        $count = count($formFields);
+        $count      = count($formFields);
         for ($i = 0; $i < $count; ++$i) {
-            $type = $this->definition->getType($formFields[$i]);
-            $value = $entity->getRaw($formFields[$i]);
+            $type  = $this->definition->getType($formFields[$i]);
+            $value = $entity->get($formFields[$i]);
             if ($type == 'boolean') {
                 $value = $value ? 1 : 0;
             }
-            if ($setValue) {
-                $queryBuilder->setValue('`'.$formFields[$i].'`', '?');
-            } else {
-                $queryBuilder->set('`'.$formFields[$i].'`', '?');
-            }
+            $queryBuilder->$setMethod('`'.$formFields[$i].'`', '?');
             $queryBuilder->setParameter($i, $value);
         }
     }
@@ -71,7 +67,7 @@ class MySQLData extends Data {
     protected function deleteChildren($id, $deleteCascade) {
         foreach ($this->definition->getChildren() as $childArray) {
             $childData = $this->definition->getServiceProvider()->getData($childArray[2]);
-            $children = $childData->listEntries(array($childArray[1] => $id));
+            $children  = $childData->listEntries(array($childArray[1] => $id));
             foreach ($children as $child) {
                 $childData->doDelete($child, $deleteCascade);
             }
@@ -89,15 +85,15 @@ class MySQLData extends Data {
      */
     protected function hasChildren($id) {
         foreach ($this->definition->getChildren() as $child) {
-            $queryBuilder = $this->db->createQueryBuilder();
+            $queryBuilder = $this->database->createQueryBuilder();
             $queryBuilder
                 ->select('COUNT(id)')
-                ->from($child[0], $child[0])
-                ->where($child[1].' = ?')
+                ->from('`'.$child[0].'`', '`'.$child[0].'`')
+                ->where('`'.$child[1].'` = ?')
                 ->andWhere('deleted_at IS NULL')
                 ->setParameter(0, $id);
             $queryResult = $queryBuilder->execute();
-            $result = $queryResult->fetch(\PDO::FETCH_NUM);
+            $result      = $queryResult->fetch(\PDO::FETCH_NUM);
             if ($result[0] > 0) {
                 return true;
             }
@@ -109,7 +105,7 @@ class MySQLData extends Data {
      * {@inheritdoc}
      */
     protected function doDelete(Entity $entity, $deleteCascade) {
-        $result = $this->executeEvents($entity, 'before', 'delete');
+        $result = $this->shouldExecuteEvents($entity, 'before', 'delete');
         if (!$result) {
             return static::DELETION_FAILED_EVENT;
         }
@@ -120,15 +116,15 @@ class MySQLData extends Data {
             return static::DELETION_FAILED_STILL_REFERENCED;
         }
 
-        $query = $this->db->createQueryBuilder();
+        $query = $this->database->createQueryBuilder();
         $query
-            ->update($this->definition->getTable())
+            ->update('`'.$this->definition->getTable().'`')
             ->set('deleted_at', 'UTC_TIMESTAMP()')
             ->where('id = ?')
             ->setParameter(0, $id);
 
         $query->execute();
-        $this->executeEvents($entity, 'after', 'delete');
+        $this->shouldExecuteEvents($entity, 'after', 'delete');
         return static::DELETION_SUCCESS;
     }
 
@@ -190,7 +186,7 @@ class MySQLData extends Data {
     protected function addSort(QueryBuilder $queryBuilder, $sortField, $sortAscending) {
         if ($sortField !== null) {
             $order = $sortAscending === true ? 'ASC' : 'DESC';
-            $queryBuilder->orderBy($sortField, $order);
+            $queryBuilder->orderBy('`'.$sortField.'`', $order);
         }
     }
 
@@ -205,8 +201,8 @@ class MySQLData extends Data {
      * the reference field
      */
     protected function fetchReferencesForField(array &$entities, $field) {
-        $nameField = $this->definition->getReferenceNameField($field);
-        $queryBuilder = $this->db->createQueryBuilder();
+        $nameField    = $this->definition->getReferenceNameField($field);
+        $queryBuilder = $this->database->createQueryBuilder();
 
         $ids = array_map(function(Entity $entity) use ($field) {
             return $entity->get($field);
@@ -214,7 +210,7 @@ class MySQLData extends Data {
 
         $table = $this->definition->getReferenceTable($field);
         $queryBuilder
-            ->from($table, $table)
+            ->from('`'.$table.'`', '`'.$table.'`')
             ->where('id IN (?)')
             ->andWhere('deleted_at IS NULL');
         if ($nameField) {
@@ -226,8 +222,8 @@ class MySQLData extends Data {
         $queryBuilder->setParameter(0, $ids, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
 
         $queryResult = $queryBuilder->execute();
-        $rows = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
-        $amount = count($entities);
+        $rows        = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
+        $amount      = count($entities);
         foreach ($rows as $row) {
             for ($i = 0; $i < $amount; ++$i) {
                 if ($entities[$i]->get($field) == $row['id']) {
@@ -250,9 +246,9 @@ class MySQLData extends Data {
     protected function generateUUID() {
         $uuid = null;
         if ($this->useUUIDs) {
-            $sql = 'SELECT UUID() as id';
-            $result = $this->db->fetchAssoc($sql);
-            $uuid = $result['id'];
+            $sql    = 'SELECT UUID() as id';
+            $result = $this->database->fetchAssoc($sql);
+            $uuid   = $result['id'];
         }
         return $uuid;
     }
@@ -264,16 +260,16 @@ class MySQLData extends Data {
      * the entity definition
      * @param FileProcessorInterface $fileProcessor
      * the file processor to use
-     * @param $db
+     * @param $database
      * the Doctrine DBAL instance to use
      * @param boolean $useUUIDs
      * flag whether to use UUIDs as primary key
      */
-    public function __construct(EntityDefinition $definition, FileProcessorInterface $fileProcessor, $db, $useUUIDs) {
-        $this->definition = $definition;
+    public function __construct(EntityDefinition $definition, FileProcessorInterface $fileProcessor, $database, $useUUIDs) {
+        $this->definition    = $definition;
         $this->fileProcessor = $fileProcessor;
-        $this->db = $db;
-        $this->useUUIDs = $useUUIDs;
+        $this->database      = $database;
+        $this->useUUIDs      = $useUUIDs;
     }
 
     /**
@@ -293,11 +289,11 @@ class MySQLData extends Data {
     public function listEntries(array $filter = array(), array $filterOperators = array(), $skip = null, $amount = null, $sortField = null, $sortAscending = null) {
         $fieldNames = $this->definition->getFieldNames();
 
-        $queryBuilder = $this->db->createQueryBuilder();
-        $table = $this->definition->getTable();
+        $queryBuilder = $this->database->createQueryBuilder();
+        $table        = $this->definition->getTable();
         $queryBuilder
             ->select('`'.implode('`,`', $fieldNames).'`')
-            ->from($table, $table)
+            ->from('`'.$table.'`', '`'.$table.'`')
             ->where('deleted_at IS NULL');
 
         $this->addFilter($queryBuilder, $filter, $filterOperators);
@@ -305,8 +301,8 @@ class MySQLData extends Data {
         $this->addSort($queryBuilder, $sortField, $sortAscending);
 
         $queryResult = $queryBuilder->execute();
-        $rows = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
-        $entities = array();
+        $rows        = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
+        $entities    = array();
         foreach ($rows as $row) {
             $entities[] = $this->hydrate($row);
         }
@@ -318,20 +314,20 @@ class MySQLData extends Data {
      */
     public function create(Entity $entity) {
 
-        $result = $this->executeEvents($entity, 'before', 'create');
+        $result = $this->shouldExecuteEvents($entity, 'before', 'create');
         if (!$result) {
             return false;
         }
 
-        $queryBuilder = $this->db->createQueryBuilder();
+        $queryBuilder = $this->database->createQueryBuilder();
         $queryBuilder
-            ->insert($this->definition->getTable())
+            ->insert('`'.$this->definition->getTable().'`')
             ->setValue('created_at', 'UTC_TIMESTAMP()')
             ->setValue('updated_at', 'UTC_TIMESTAMP()')
             ->setValue('version', 0);
 
 
-        $this->setValuesAndParameters($entity, $queryBuilder, true);
+        $this->setValuesAndParameters($entity, $queryBuilder, 'setValue');
 
         $id = $this->generateUUID();
         if ($this->useUUIDs) {
@@ -343,7 +339,7 @@ class MySQLData extends Data {
         $queryBuilder->execute();
 
         if (!$this->useUUIDs) {
-            $id = $this->db->lastInsertId();
+            $id = $this->database->lastInsertId();
         }
 
         $entity->set('id', $id);
@@ -353,7 +349,7 @@ class MySQLData extends Data {
         $entity->set('created_at', $createdEntity->get('created_at'));
         $entity->set('updated_at', $createdEntity->get('updated_at'));
 
-        $this->executeEvents($entity, 'after', 'create');
+        $this->shouldExecuteEvents($entity, 'after', 'create');
 
         return true;
     }
@@ -363,25 +359,24 @@ class MySQLData extends Data {
      */
     public function update(Entity $entity) {
 
-        $result = $this->executeEvents($entity, 'before', 'update');
+        $result = $this->shouldExecuteEvents($entity, 'before', 'update');
         if (!$result) {
             return false;
         }
 
-        $queryBuilder = $this->db->createQueryBuilder();
+        $formFields   = $this->definition->getEditableFieldNames();
+        $queryBuilder = $this->database->createQueryBuilder();
         $queryBuilder
-            ->update($this->definition->getTable())
+            ->update('`'.$this->definition->getTable().'`')
             ->set('updated_at', 'UTC_TIMESTAMP()')
-            ->set('version', 'version + 1');
-
-        $formFields = $this->definition->getEditableFieldNames();
-        $this->setValuesAndParameters($entity, $queryBuilder, false);
-        $affected = $queryBuilder
+            ->set('version', 'version + 1')
             ->where('id = ?')
-            ->setParameter(count($formFields), $entity->get('id'))
-            ->execute();
+            ->setParameter(count($formFields), $entity->get('id'));
 
-        $this->executeEvents($entity, 'after', 'update');
+        $this->setValuesAndParameters($entity, $queryBuilder, 'set');
+        $affected = $queryBuilder->execute();
+
+        $this->shouldExecuteEvents($entity, 'after', 'update');
 
         return $affected;
     }
@@ -391,21 +386,21 @@ class MySQLData extends Data {
      */
     public function getReferences($table, $nameField) {
 
-        $queryBuilder = $this->db->createQueryBuilder();
+        $queryBuilder = $this->database->createQueryBuilder();
         if ($nameField) {
             $queryBuilder->select('id', $nameField);
         } else {
             $queryBuilder->select('id');
         }
-        $queryBuilder->from($table, $table)->where('deleted_at IS NULL');
+        $queryBuilder->from('`'.$table.'`', '`'.$table.'`')->where('deleted_at IS NULL');
         if ($nameField) {
             $queryBuilder->orderBy($nameField);
         } else {
             $queryBuilder->orderBy('id');
         }
         $queryResult = $queryBuilder->execute();
-        $entries = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
-        $result = array();
+        $entries     = $queryResult->fetchAll(\PDO::FETCH_ASSOC);
+        $result      = array();
         foreach ($entries as $entry) {
             $result[$entry['id']] = $nameField ? $entry[$nameField] : $entry['id'];
         }
@@ -416,11 +411,12 @@ class MySQLData extends Data {
      * {@inheritdoc}
      */
     public function countBy($table, array $params, array $paramsOperators, $excludeDeleted) {
-        $queryBuilder = $this->db->createQueryBuilder();
+        $queryBuilder = $this->database->createQueryBuilder();
         $queryBuilder
             ->select('COUNT(id)')
-            ->from($table, $table);
+            ->from('`'.$table.'`', '`'.$table.'`');
 
+        $deletedExcluder = 'where';
         if (count($params) > 0) {
             $i = 0;
             foreach ($params as $name => $value) {
@@ -429,17 +425,14 @@ class MySQLData extends Data {
                     ->setParameter($i, $value);
                 $i++;
             }
-            if ($excludeDeleted) {
-                $queryBuilder->andWhere('deleted_at IS NULL');
-            }
-        } else {
-            if ($excludeDeleted) {
-                $queryBuilder->where('deleted_at IS NULL');
-            }
+            $deletedExcluder = 'andWhere';
+        }
+        if ($excludeDeleted) {
+            $queryBuilder->$deletedExcluder('deleted_at IS NULL');
         }
 
         $queryResult = $queryBuilder->execute();
-        $result = $queryResult->fetch(\PDO::FETCH_NUM);
+        $result      = $queryResult->fetch(\PDO::FETCH_NUM);
         return intval($result[0]);
     }
 

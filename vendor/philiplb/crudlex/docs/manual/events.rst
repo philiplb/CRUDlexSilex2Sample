@@ -13,7 +13,7 @@ This is how you define an event which is executed before an entity is created:
 
 .. code-block:: php
 
-    $app['crud']->getData('library')->pushEvent('before', 'create', function(Entity $entity) {
+    $app['crud']->getData('library')->pushEvent('before', 'create', function(CRUDlex\Entity $entity) {
         // Do something with the entity which is about to be saved.
         return true;
     });
@@ -24,13 +24,21 @@ registered.
 *pushEvent* takes three parameters:
 
 * The moment of the event, can be:
+
   * before
   * after
+
 * The action of the event, can be:
-  * create
-  * update
-  * delete
-* The closure to execute on this event. Signature: **function(Entity $entity)**
+
+  * create: On entity creation
+  * update: On entity update
+  * delete: On entity deletion
+  * createFiles: On created entity files handling
+  * updateFiles: On updated entity files handling
+  * deleteFiles: On deleted entity files handling
+  * deleteFile: On deleting a file of an entity
+
+* The closure to execute on this event. Signature: **function(CRUDlex\\Entity $entity)**
 
 You can push as many events for a moment and an action as you like. They will
 be executed in the order they were added.

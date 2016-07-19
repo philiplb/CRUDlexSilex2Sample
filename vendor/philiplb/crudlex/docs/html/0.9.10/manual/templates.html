@@ -98,18 +98,22 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="addons.html">Addons</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/AbstractData.html">CRUDlex\AbstractData</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ControllerProvider.html">CRUDlex\ControllerProvider</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/Data.html">CRUDlex\Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/DataFactoryInterface.html">CRUDlex\DataFactoryInterface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/Entity.html">CRUDlex\Entity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/EntityDefinition.html">CRUDlex\EntityDefinition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/EntityDefinitionFactoryInterface.html">CRUDlex\EntityDefinitionFactoryInterface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/EntityValidator.html">CRUDlex\EntityValidator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/FileProcessorInterface.html">CRUDlex\FileProcessorInterface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/ReferenceValidator.html">CRUDlex\ReferenceValidator</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ServiceProvider.html">CRUDlex\ServiceProvider</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/StreamedFileResponse.html">CRUDlex\StreamedFileResponse</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/UniqueValidator.html">CRUDlex\UniqueValidator</a></li>
 </ul>
 
             
@@ -132,7 +136,7 @@
         <div class="rst-content">
           
 
-
+ 
 
 
 
@@ -163,7 +167,7 @@ Twig block &#8220;content&#8221;. But with just the layout, you simply can&#8217
 uses for this page a template &#8220;&#64;crud/list.twig&#8221; which extends the so far
 overridable layout.</p>
 <p>In this case, you can override the template of a single page:</p>
-<div class="highlight-php"><div class="highlight"><pre><span class="x">$app[&#39;crud.template.list.book&#39;] = &#39;bookList.twig&#39;;</span>
+<div class="highlight-php"><div class="highlight"><pre><span></span><span class="x">$app[&#39;crud.template.list.book&#39;] = &#39;bookList.twig&#39;;</span>
 </pre></div>
 </div>
 <p>Note the changed part &#8220;template&#8221; of the key!</p>
@@ -185,7 +189,7 @@ point to tweak.</p>
 <ul class="simple">
 <li>form: The create and edit page (&#64;crud/form.twig)</li>
 <li>list: The list page (&#64;crud/list.twig)</li>
-<li>show: The list page (&#64;crud/list.twig)</li>
+<li>show: The show page (&#64;crud/show.twig)</li>
 </ul>
 </div>
 <div class="section" id="form-field-templates">

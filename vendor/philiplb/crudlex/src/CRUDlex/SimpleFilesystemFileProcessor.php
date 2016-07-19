@@ -11,18 +11,23 @@
 
 namespace CRUDlex;
 
+use CRUDlex\Entity;
+use CRUDlex\FileProcessorInterface;
+use CRUDlex\StreamedFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use CRUDlex\FileProcessorInterface;
-use CRUDlex\Entity;
-use CRUDlex\StreamedFileResponse;
 
 /**
  * An implementation of the {@see FileProcessorInterface} simply using the
  * file system.
  */
 class SimpleFilesystemFileProcessor implements FileProcessorInterface {
+
+    /**
+     * Holds the base path where all files will be stored into subfolders.
+     */
+    protected $basePath;
 
     /**
      * Constructs a file system path for the given parameters for storing the
@@ -39,7 +44,17 @@ class SimpleFilesystemFileProcessor implements FileProcessorInterface {
      * the constructed path for storing the file of the file field
      */
     protected function getPath($entityName, Entity $entity, $field) {
-        return $entity->getDefinition()->getFilePath($field).'/'.$entityName.'/'.$entity->get('id').'/'.$field;
+        return $this->basePath.$entity->getDefinition()->getFilePath($field).'/'.$entityName.'/'.$entity->get('id').'/'.$field;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param string $basePath
+     * the base path where all files will be stored into subfolders
+     */
+    public function __construct($basePath = '') {
+        $this->basePath = $basePath;
     }
 
     /**
@@ -78,16 +93,16 @@ class SimpleFilesystemFileProcessor implements FileProcessorInterface {
      */
     public function renderFile(Entity $entity, $entityName, $field) {
         $targetPath = $this->getPath($entityName, $entity, $field);
-        $fileName = $entity->get($field);
-        $file = $targetPath.'/'.$fileName;
-        $response = new Response('');
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file);
+        $fileName   = $entity->get($field);
+        $file       = $targetPath.'/'.$fileName;
+        $response   = new Response('');
+        $finfo      = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType   = finfo_file($finfo, $file);
         finfo_close($finfo);
         $size = filesize($file);
         if ($fileName && file_exists($file)) {
             $streamedFileResponse = new StreamedFileResponse();
-            $response = new StreamedResponse($streamedFileResponse->getStreamedFileFunction($file), 200, array(
+            $response             = new StreamedResponse($streamedFileResponse->getStreamedFileFunction($file), 200, array(
                 'Content-Type' => $mimeType,
                 'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
                 'Content-length' => $size

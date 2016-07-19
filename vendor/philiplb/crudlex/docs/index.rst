@@ -6,7 +6,7 @@ It describes every feature being available.
 
 Requirements:
 
-* PHP >= 5.3.2
+* PHP >= 5.3.3
 * For the MySQL driver: MySQL >= 5.1
 * For the file uploads: PECL fileinfo >= 0.1.0
 
@@ -27,20 +27,24 @@ Contents:
    manual/layouts
    manual/templates
    manual/events
+   manual/addons
 
 .. toctree::
    :maxdepth: 2
    :caption: API
 
+   api/AbstractData
    api/ControllerProvider
-   api/Data
    api/DataFactoryInterface
    api/Entity
    api/EntityDefinition
+   api/EntityDefinitionFactoryInterface
    api/EntityValidator
    api/FileProcessorInterface
+   api/ReferenceValidator
    api/ServiceProvider
    api/StreamedFileResponse
+   api/UniqueValidator
 
 Indices and tables
 ==================

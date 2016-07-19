@@ -1,0 +1,5 @@
+/vendor/
+build
+coverageReport
+composer.lock
+docs/_build
