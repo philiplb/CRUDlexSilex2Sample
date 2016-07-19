@@ -10,8 +10,8 @@ your desired CRUDlex version. The master is always in sync with the CRUDlex mast
 
 ## Setup
 
-Just import the CRUDlexSample.sql,
-set your database-settings in the web/index.php, adjust the web/.htaccess and
-open it in your browser.
+Just run composer update, import the CRUDlexSample.sql, set your database
+settings in the web/index.php, adjust the web/.htaccess and open it in your
+browser.
 
 [Visit CRUDlex!](https://github.com/philiplb/CRUDlex)
