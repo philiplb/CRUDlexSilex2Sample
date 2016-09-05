@@ -46,7 +46,6 @@ book:
       type: reference
       label: Library
       reference:
-        table: library
         nameField: name
         entity: library
       required: true
