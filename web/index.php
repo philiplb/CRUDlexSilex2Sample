@@ -35,7 +35,6 @@ $app->register(new CRUDlex\ServiceProvider(), array(
     //'crud.stringsfile' => __DIR__ . '/../strings.yml',
     'crud.datafactory' => $dataFactory
 ));
-$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 $app->register(new Silex\Provider\TwigServiceProvider());
 
 //$app['crud.layout'] = 'layout.twig';
