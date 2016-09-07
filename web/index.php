@@ -10,8 +10,8 @@
  */
 
 $loader = require __DIR__.'/../vendor/autoload.php';
-#$loader->add('CRUDlex', __DIR__.'/../../CRUDlex/src');
 
+//$loader->add('CRUDlex', __DIR__.'/../../CRUDlex/src');
 $app = new Silex\Application();
 
 $app['debug'] = true;
@@ -32,7 +32,6 @@ $app->register(new Silex\Provider\SessionServiceProvider());
 $dataFactory = new CRUDlex\MySQLDataFactory($app['db']);
 $app->register(new CRUDlex\ServiceProvider(), array(
     'crud.file' => __DIR__ . '/../crud.yml',
-    //'crud.stringsfile' => __DIR__ . '/../strings.yml',
     'crud.datafactory' => $dataFactory
 ));
 $app->register(new Silex\Provider\TwigServiceProvider());
