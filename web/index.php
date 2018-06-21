@@ -16,31 +16,32 @@ $app = new Silex\Application();
 
 $app['debug'] = true;
 
-$app->register(new Silex\Provider\DoctrineServiceProvider(), array(
-    'dbs.options' => array(
-        'default' => array(
+$app->register(new Silex\Provider\DoctrineServiceProvider(), [
+    'dbs.options' => [
+        'default' => [
             'host'      => '127.0.0.1',
             'dbname'    => 'crud',
             'user'      => 'root',
             'password'  => '',
             'charset'   => 'utf8',
-        )
-    ),
-));
+        ]
+    ],
+]);
 $app->register(new Silex\Provider\SessionServiceProvider());
 
 $dataFactory = new CRUDlex\MySQLDataFactory($app['db']);
-$app->register(new CRUDlex\ServiceProvider(), array(
+$app->register(new CRUDlex\Silex\ServiceProvider(), [
     'crud.file' => __DIR__ . '/../crud.yml',
     'crud.datafactory' => $dataFactory
-));
+]);
 $app->register(new Silex\Provider\TwigServiceProvider());
 
 //$app['crud.layout'] = 'layout.twig';
-$app->mount('/crud', new CRUDlex\ControllerProvider());
+$app->boot();
+$app->mount('/crud', new CRUDlex\Silex\ControllerProvider());
 
 $app->match('/', function() use ($app) {
-    return $app->redirect($app['url_generator']->generate('crudList', array('entity' => 'library')));
+    return $app->redirect($app['url_generator']->generate('crudList', ['entity' => 'library']));
 })->bind('homepage');
 
 $app->run();
