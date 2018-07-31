@@ -1,4 +1,9 @@
 {
+    "type": "project",
+    "description": "This is an example application for CRUDlex using Silex 2.",
+    "keywords": ["silex", "crudlex", "crud", "admin generator"],
+    "homepage": "https://github.com/philiplb/CRUDlexSilex2Sample",
+    "license": "MIT",
     "repositories": [
         {
             "type": "vcs",
