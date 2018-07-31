@@ -2,10 +2,6 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/philiplb/sphpdox"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/ptlis/MetaYaml"
         }
     ],
@@ -14,7 +10,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.11.x-dev"
+            "dev-master": "0.14.x-dev"
         }
     },
     "minimum-stability": "dev",

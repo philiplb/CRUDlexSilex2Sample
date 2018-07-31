@@ -1,7 +1,7 @@
-CRUDlex Sample
-==============
+CRUDlex Silex 2 Sample
+======================
 
-This is a basic sample showing of CRUDlex.
+This is a basic sample showing of CRUDlex with Silex 2.
 
 ## Version
 
