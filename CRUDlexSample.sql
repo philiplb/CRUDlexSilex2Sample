@@ -1,4 +1,4 @@
--- This file is part of the CRUDlex sample package.
+-- This file is part of the CRUDlex Silex 2 sample package.
 --
 -- (c) Philip Lehmann-Böhm <philip@philiplb.de>
 --
